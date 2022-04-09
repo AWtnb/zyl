@@ -48,7 +48,7 @@ func run(datapath string, filer string, all bool, exclude string) int {
 	li := lis[idx]
 	lp := li.Path
 	if isExecutable(lp) {
-		exeCmd(lp)
+		executeFile(lp)
 		return 0
 	}
 	ld := li.Depth
@@ -57,26 +57,34 @@ func run(datapath string, filer string, all bool, exclude string) int {
 		return 0
 	}
 	cs := getChildItems(lp, ld, all, toSlice(exclude, ","))
-	var c string
-	if len(cs) > 1 {
-		idx, err := fuzzyfinder.Find(cs, func(i int) string {
-			return formatChildPath(lp, cs[i])
-		})
-		if err != nil {
-			return 1
-		}
-		c = cs[idx]
-	} else if len(cs) == 1 {
-		c = cs[0]
-	} else {
-		c = lp
+	c, err := selectPath(lp, cs)
+	if err != nil {
+		return 1
 	}
 	if isExecutable(c) {
-		exeCmd(c)
-	} else {
-		exec.Command(filer, c).Start()
+		executeFile(c)
+		return 0
 	}
+	exec.Command(filer, c).Start()
 	return 0
+}
+
+func selectPath(root string, paths []string) (string, error) {
+	var item string
+	if len(paths) > 1 {
+		idx, err := fuzzyfinder.Find(paths, func(i int) string {
+			return formatChildPath(root, paths[i])
+		})
+		if err != nil {
+			return "", err
+		}
+		item = paths[idx]
+	} else if len(paths) == 1 {
+		item = paths[0]
+	} else {
+		item = root
+	}
+	return item, nil
 }
 
 func formatChildPath(root string, child string) string {
@@ -100,7 +108,7 @@ func hasFile(path string) bool {
 	return nf > 0
 }
 
-func exeCmd(path string) {
+func executeFile(path string) {
 	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
 }
 
