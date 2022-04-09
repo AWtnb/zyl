@@ -132,7 +132,7 @@ type LaunchInfo struct {
 }
 
 func loadYaml(fileBuffer []byte) ([]LaunchInfo, error) {
-	data := make([]LaunchInfo, 100)
+	var data []LaunchInfo
 	err := yaml.Unmarshal(fileBuffer, &data)
 	if err != nil {
 		fmt.Println(err)
@@ -200,7 +200,7 @@ func getDepth(path string) int {
 }
 
 func getChildItems(root string, depth int, all bool, exclude []string) []string {
-	items := make([]string, 0, 10)
+	var items []string
 	rd := getDepth(root)
 	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
