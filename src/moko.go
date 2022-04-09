@@ -87,6 +87,8 @@ func selectPath(root string, paths []string) (string, error) {
 	return paths[idx], nil
 }
 
+// utilities
+
 func formatChildPath(root string, child string) string {
 	rel, _ := filepath.Rel(root, child)
 	if fi, _ := os.Stat(child); fi.IsDir() && !hasFile(child) {
@@ -107,8 +109,6 @@ func hasFile(path string) bool {
 	}
 	return nf > 0
 }
-
-// utilities
 
 func executeFile(path string) {
 	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
