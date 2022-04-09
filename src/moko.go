@@ -30,6 +30,8 @@ func main() {
 	os.Exit(run(datapath, filer, all, exclude))
 }
 
+// main process
+
 func run(datapath string, filer string, all bool, exclude string) int {
 	if !isValidPath(datapath) {
 		fmt.Println("cannot find data file...")
@@ -70,21 +72,19 @@ func run(datapath string, filer string, all bool, exclude string) int {
 }
 
 func selectPath(root string, paths []string) (string, error) {
-	var item string
-	if len(paths) > 1 {
-		idx, err := fuzzyfinder.Find(paths, func(i int) string {
-			return formatChildPath(root, paths[i])
-		})
-		if err != nil {
-			return "", err
-		}
-		item = paths[idx]
-	} else if len(paths) == 1 {
-		item = paths[0]
-	} else {
-		item = root
+	if len(paths) < 1 {
+		return root, nil
 	}
-	return item, nil
+	if len(paths) == 1 {
+		return paths[0], nil
+	}
+	idx, err := fuzzyfinder.Find(paths, func(i int) string {
+		return formatChildPath(root, paths[i])
+	})
+	if err != nil {
+		return "", err
+	}
+	return paths[idx], nil
 }
 
 func formatChildPath(root string, child string) string {
@@ -107,6 +107,8 @@ func hasFile(path string) bool {
 	}
 	return nf > 0
 }
+
+// utilities
 
 func executeFile(path string) {
 	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
@@ -132,6 +134,8 @@ func toSlice(s string, sep string) []string {
 	}
 	return ss
 }
+
+// loading yaml
 
 type LaunchInfo struct {
 	Path  string
@@ -162,18 +166,13 @@ func readFile(path string) []LaunchInfo {
 }
 
 func getDisplayName(s string) string {
-	n := ""
 	if strings.HasPrefix(s, "http") {
-		u, err := url.Parse(s)
-		if err == nil {
-			n = fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
-		} else {
-			n = s
+		if u, err := url.Parse(s); err == nil {
+			return fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
 		}
-	} else {
-		n = filepath.Base(s)
+		return s
 	}
-	return n
+	return filepath.Base(s)
 }
 
 func loadSource(path string) []LaunchInfo {
@@ -193,6 +192,8 @@ func loadSource(path string) []LaunchInfo {
 	}
 	return lis
 }
+
+// traverse directory
 
 func sliceContains(slc []string, str string) bool {
 	for _, v := range slc {
