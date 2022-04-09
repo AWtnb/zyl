@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/AWtnb/moko/util"
 	"github.com/go-yaml/yaml"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
@@ -30,14 +31,12 @@ func main() {
 	os.Exit(run(datapath, filer, all, exclude))
 }
 
-// main process
-
 func run(datapath string, filer string, all bool, exclude string) int {
-	if !isValidPath(datapath) {
+	if !util.IsValidPath(datapath) {
 		fmt.Println("cannot find data file...")
 		return 1
 	}
-	if !isValidPath(filer) {
+	if !util.IsValidPath(filer) {
 		filer = "explorer.exe"
 	}
 	lis := loadSource(datapath)
@@ -49,8 +48,8 @@ func run(datapath string, filer string, all bool, exclude string) int {
 	}
 	li := lis[idx]
 	lp := li.Path
-	if isExecutable(lp) {
-		executeFile(lp)
+	if util.IsExecutable(lp) {
+		util.ExecuteFile(lp)
 		return 0
 	}
 	ld := li.Depth
@@ -58,17 +57,25 @@ func run(datapath string, filer string, all bool, exclude string) int {
 		exec.Command(filer, lp).Start()
 		return 0
 	}
-	cs := getChildItems(lp, ld, all, toSlice(exclude, ","))
+	cs := getChildItems(lp, ld, all, util.ToSlice(exclude, ","))
 	c, err := selectPath(lp, cs)
 	if err != nil {
 		return 1
 	}
-	if isExecutable(c) {
-		executeFile(c)
+	if util.IsExecutable(c) {
+		util.ExecuteFile(c)
 		return 0
 	}
 	exec.Command(filer, c).Start()
 	return 0
+}
+
+func formatChildPath(root string, child string) string {
+	rel, _ := filepath.Rel(root, child)
+	if fi, _ := os.Stat(child); fi.IsDir() && !util.HasFile(child) {
+		return rel + "$"
+	}
+	return rel
 }
 
 func selectPath(root string, paths []string) (string, error) {
@@ -85,54 +92,6 @@ func selectPath(root string, paths []string) (string, error) {
 		return "", err
 	}
 	return paths[idx], nil
-}
-
-// utilities
-
-func formatChildPath(root string, child string) string {
-	rel, _ := filepath.Rel(root, child)
-	if fi, _ := os.Stat(child); fi.IsDir() && !hasFile(child) {
-		return rel + "$"
-	}
-	return rel
-}
-
-func hasFile(path string) bool {
-	nf := 0
-	items, err := ioutil.ReadDir(path)
-	if err == nil {
-		for _, item := range items {
-			if !item.IsDir() {
-				nf++
-			}
-		}
-	}
-	return nf > 0
-}
-
-func executeFile(path string) {
-	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
-}
-
-func isValidPath(filename string) bool {
-	_, err := os.Stat(filename)
-	return err == nil
-}
-
-func isExecutable(path string) bool {
-	if strings.HasPrefix(path, "http") {
-		return true
-	}
-	fi, _ := os.Stat(path)
-	return !fi.IsDir()
-}
-
-func toSlice(s string, sep string) []string {
-	var ss []string
-	for _, elem := range strings.Split(s, sep) {
-		ss = append(ss, strings.TrimSpace(elem))
-	}
-	return ss
 }
 
 // loading yaml
@@ -178,7 +137,7 @@ func getDisplayName(s string) string {
 func loadSource(path string) []LaunchInfo {
 	var lis []LaunchInfo
 	for _, li := range readFile(path) {
-		if strings.HasPrefix(li.Path, "http") || isValidPath(li.Path) {
+		if strings.HasPrefix(li.Path, "http") || util.IsValidPath(li.Path) {
 			var l LaunchInfo
 			l.Path = li.Path
 			l.Depth = li.Depth
@@ -195,15 +154,6 @@ func loadSource(path string) []LaunchInfo {
 
 // traverse directory
 
-func sliceContains(slc []string, str string) bool {
-	for _, v := range slc {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
 func getDepth(path string) int {
 	return strings.Count(path, string(filepath.Separator))
 }
@@ -218,7 +168,7 @@ func getChildItems(root string, depth int, all bool, exclude []string) []string 
 		if depth > 0 && getDepth(path)-rd > depth {
 			return filepath.SkipDir
 		}
-		if sliceContains(exclude, info.Name()) {
+		if util.SliceContains(exclude, info.Name()) {
 			return filepath.SkipDir
 		}
 		if all {
