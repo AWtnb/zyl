@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -10,9 +9,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 
+	"github.com/go-yaml/yaml"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
@@ -23,10 +22,10 @@ func main() {
 		all      bool
 		exclude  string
 	)
-	flag.StringVar(&datapath, "datapath", "", "path to databese text file.\nstyle: filepath(|displayName|depth)\n")
+	flag.StringVar(&datapath, "datapath", "", "databese yaml file")
 	flag.StringVar(&filer, "filer", "explorer.exe", "path of filer")
-	flag.BoolVar(&all, "all", false, "search include file")
-	flag.StringVar(&exclude, "exclude", "", "path to skip searching (comma-separated)")
+	flag.BoolVar(&all, "all", false, "switch to search including file")
+	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
 	flag.Parse()
 	os.Exit(run(datapath, filer, all, exclude))
 }
@@ -39,29 +38,29 @@ func run(datapath string, filer string, all bool, exclude string) int {
 	if !isValidPath(filer) {
 		filer = "explorer.exe"
 	}
-	launchItems := loadSource(datapath)
-	idx, err := fuzzyfinder.Find(launchItems, func(i int) string {
-		return launchItems[i].Name
+	lis := loadSource(datapath)
+	idx, err := fuzzyfinder.Find(lis, func(i int) string {
+		return lis[i].Name
 	})
 	if err != nil {
 		return 1
 	}
-	root := launchItems[idx]
-	rp := root.Path
-	if isExecutable(rp) {
-		exeCmd(rp)
+	li := lis[idx]
+	lp := li.Path
+	if isExecutable(lp) {
+		exeCmd(lp)
 		return 0
 	}
-	md := root.MaxDepth
-	if md == 0 {
-		exec.Command(filer, rp).Start()
+	ld := li.Depth
+	if ld < 0 {
+		exec.Command(filer, lp).Start()
 		return 0
 	}
-	cs := getChildItems(rp, md, all, toSlice(exclude, ","))
+	cs := getChildItems(lp, ld, all, toSlice(exclude, ","))
 	var c string
 	if len(cs) > 1 {
 		idx, err := fuzzyfinder.Find(cs, func(i int) string {
-			return formatChildPath(rp, cs[i])
+			return formatChildPath(lp, cs[i])
 		})
 		if err != nil {
 			return 1
@@ -70,7 +69,7 @@ func run(datapath string, filer string, all bool, exclude string) int {
 	} else if len(cs) == 1 {
 		c = cs[0]
 	} else {
-		c = rp
+		c = lp
 	}
 	if isExecutable(c) {
 		exeCmd(c)
@@ -118,21 +117,6 @@ func isExecutable(path string) bool {
 	return !fi.IsDir()
 }
 
-func getDisplayName(s string) string {
-	dn := ""
-	if strings.HasPrefix(s, "http") {
-		u, err := url.Parse(s)
-		if err == nil {
-			dn = fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
-		} else {
-			dn = s
-		}
-	} else {
-		dn = filepath.Base(s)
-	}
-	return dn
-}
-
 func toSlice(s string, sep string) []string {
 	var ss []string
 	for _, elem := range strings.Split(s, sep) {
@@ -142,65 +126,61 @@ func toSlice(s string, sep string) []string {
 }
 
 type LaunchInfo struct {
-	Path     string
-	Name     string
-	MaxDepth int
+	Path  string
+	Name  string
+	Depth int
 }
 
-func parseLine(line string, sep string) LaunchInfo {
-	sl := toSlice(line, sep)
-	if len(sl) > 2 {
-		sl = sl[:3]
-	} else if len(sl) == 2 {
-		sl = append(sl, "-1")
-	} else if len(sl) == 1 {
-		sl = append(sl, getDisplayName(sl[0]), "-1")
-	}
-	if len(sl[1]) < 1 {
-		sl[1] = getDisplayName(sl[0])
-	}
-	md := 0
-	if i, err := strconv.Atoi(sl[2]); err == nil {
-		md = i
-	}
-	return LaunchInfo{
-		Path:     sl[0],
-		Name:     sl[1],
-		MaxDepth: md,
-	}
-}
-
-func readFile(filePath string) []string {
-	f, err := os.Open(filePath)
+func loadYaml(fileBuffer []byte) ([]LaunchInfo, error) {
+	data := make([]LaunchInfo, 100)
+	err := yaml.Unmarshal(fileBuffer, &data)
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-	lines := make([]string, 0, 100)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
-	}
-
-	return lines
+	return data, nil
 }
 
-type LaunchInfos []LaunchInfo
+func readFile(path string) []LaunchInfo {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		fmt.Println(err)
+		return []LaunchInfo{}
+	}
+	yml, err := loadYaml(buf)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return yml
+}
 
-func loadSource(path string) LaunchInfos {
-	var lis LaunchInfos
-	for _, s := range readFile(path) {
-		if len(strings.TrimSpace(s)) < 1 {
-			continue
+func getDisplayName(s string) string {
+	n := ""
+	if strings.HasPrefix(s, "http") {
+		u, err := url.Parse(s)
+		if err == nil {
+			n = fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
+		} else {
+			n = s
 		}
-		li := parseLine(s, "|")
+	} else {
+		n = filepath.Base(s)
+	}
+	return n
+}
+
+func loadSource(path string) []LaunchInfo {
+	var lis []LaunchInfo
+	for _, li := range readFile(path) {
 		if strings.HasPrefix(li.Path, "http") || isValidPath(li.Path) {
-			lis = append(lis, li)
+			var l LaunchInfo
+			l.Path = li.Path
+			l.Depth = li.Depth
+			if len(li.Name) > 0 {
+				l.Name = li.Name
+			} else {
+				l.Name = getDisplayName(li.Path)
+			}
+			lis = append(lis, l)
 		}
 	}
 	return lis
@@ -219,14 +199,14 @@ func getDepth(path string) int {
 	return strings.Count(path, string(filepath.Separator))
 }
 
-func getChildItems(root string, maxDepth int, all bool, exclude []string) []string {
-	items := make([]string, 0, 1000)
+func getChildItems(root string, depth int, all bool, exclude []string) []string {
+	items := make([]string, 0, 10)
 	rd := getDepth(root)
 	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		if maxDepth > 0 && getDepth(path)-rd > maxDepth {
+		if depth > 0 && getDepth(path)-rd > depth {
 			return filepath.SkipDir
 		}
 		if sliceContains(exclude, info.Name()) {

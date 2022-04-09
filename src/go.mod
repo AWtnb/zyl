@@ -2,7 +2,10 @@ module github.com/AWtnb/moko
 
 go 1.18
 
-require github.com/ktr0731/go-fuzzyfinder v0.6.0
+require (
+	github.com/go-yaml/yaml v2.1.0+incompatible
+	github.com/ktr0731/go-fuzzyfinder v0.6.0
+)
 
 require (
 	github.com/gdamore/encoding v1.0.0 // indirect
@@ -15,4 +18,6 @@ require (
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf // indirect
 	golang.org/x/text v0.3.6 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
