@@ -44,12 +44,3 @@ func ToSlice(s string, sep string) []string {
 	}
 	return ss
 }
-
-func SliceContains(slc []string, str string) bool {
-	for _, v := range slc {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}

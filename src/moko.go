@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/AWtnb/moko/util"
+	"github.com/AWtnb/moko/walk"
 	"github.com/go-yaml/yaml"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
@@ -57,7 +57,7 @@ func run(datapath string, filer string, all bool, exclude string) int {
 		exec.Command(filer, lp).Start()
 		return 0
 	}
-	cs := getChildItems(lp, ld, all, util.ToSlice(exclude, ","))
+	cs := walk.GetChildItems(lp, ld, all, util.ToSlice(exclude, ","))
 	c, err := selectPath(lp, cs)
 	if err != nil {
 		return 1
@@ -150,41 +150,4 @@ func loadSource(path string) []LaunchInfo {
 		}
 	}
 	return lis
-}
-
-// traverse directory
-
-func getDepth(path string) int {
-	return strings.Count(path, string(filepath.Separator))
-}
-
-func getChildItems(root string, depth int, all bool, exclude []string) []string {
-	var items []string
-	rd := getDepth(root)
-	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if depth > 0 && getDepth(path)-rd > depth {
-			return filepath.SkipDir
-		}
-		if util.SliceContains(exclude, info.Name()) {
-			return filepath.SkipDir
-		}
-		if all {
-			items = append(items, path)
-			return nil
-		}
-		if info.IsDir() {
-			if strings.HasPrefix(info.Name(), ".") {
-				return filepath.SkipDir
-			}
-			items = append(items, path)
-		}
-		return nil
-	})
-	if err != nil {
-		fmt.Println("failed to traverse directory...")
-	}
-	return items
 }
