@@ -41,7 +41,7 @@ func run(datapath string, filer string, all bool, exclude string) int {
 	}
 	lis := loadSource(datapath)
 	idx, err := fuzzyfinder.Find(lis, func(i int) string {
-		return lis[i].Name
+		return lis[i].Alias
 	})
 	if err != nil {
 		return 1
@@ -98,7 +98,7 @@ func selectPath(root string, paths []string) (string, error) {
 
 type LaunchInfo struct {
 	Path  string
-	Name  string
+	Alias string
 	Depth int
 }
 
@@ -141,10 +141,10 @@ func loadSource(path string) []LaunchInfo {
 			var l LaunchInfo
 			l.Path = li.Path
 			l.Depth = li.Depth
-			if len(li.Name) > 0 {
-				l.Name = li.Name
+			if len(li.Alias) > 0 {
+				l.Alias = li.Alias
 			} else {
-				l.Name = getDisplayName(li.Path)
+				l.Alias = getDisplayName(li.Path)
 			}
 			lis = append(lis, l)
 		}
