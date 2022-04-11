@@ -33,11 +33,12 @@ func main() {
 
 func run(src string, filer string, all bool, exclude string) int {
 	if !util.IsValidPath(src) {
-		p, err := os.Executable()
-		if err != nil {
+		p, _ := os.Executable()
+		src = filepath.Join(filepath.Dir(p), "launch.yaml")
+		if !util.IsValidPath(src) {
+			fmt.Println("need to specify source file!")
 			return 1
 		}
-		src = filepath.Join(filepath.Dir(p), "launch.yaml")
 	}
 	if !util.IsValidPath(filer) {
 		filer = "explorer.exe"
