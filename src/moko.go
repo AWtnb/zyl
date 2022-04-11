@@ -137,14 +137,15 @@ func getDisplayName(s string) string {
 func loadSource(path string) []LaunchInfo {
 	var lis []LaunchInfo
 	for _, li := range readFile(path) {
-		if strings.HasPrefix(li.Path, "http") || util.IsValidPath(li.Path) {
+		p := util.ParsePath(li.Path)
+		if strings.HasPrefix(li.Path, "http") || util.IsValidPath(p) {
 			var l LaunchInfo
-			l.Path = li.Path
+			l.Path = p
 			l.Depth = li.Depth
 			if len(li.Alias) > 0 {
 				l.Alias = li.Alias
 			} else {
-				l.Alias = getDisplayName(li.Path)
+				l.Alias = getDisplayName(p)
 			}
 			lis = append(lis, l)
 		}

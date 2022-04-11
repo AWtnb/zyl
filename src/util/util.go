@@ -45,12 +45,14 @@ func ToSlice(s string, sep string) []string {
 	return ss
 }
 
+var envMap = map[string]string{
+	"%APPDATA%":     os.Getenv("APPDATA"),
+	"%USERNAME%":    os.Getenv("USERNAME"),
+	"%USERPROFILE%": os.Getenv("USERPROFILE"),
+}
+
 func ParsePath(s string) string {
-	table := make(map[string]string)
-	table["%APPDATA%"] = os.Getenv("APPDATA")
-	table["%USERNAME%"] = os.Getenv("USERNAME")
-	table["%USERPROFILE%"] = os.Getenv("USERPROFILE")
-	for k, v := range table {
+	for k, v := range envMap {
 		s = strings.ReplaceAll(s, k, v)
 	}
 	return s
