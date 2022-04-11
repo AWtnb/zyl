@@ -44,3 +44,14 @@ func ToSlice(s string, sep string) []string {
 	}
 	return ss
 }
+
+func ParsePath(s string) string {
+	table := make(map[string]string)
+	table["%APPDATA%"] = os.Getenv("APPDATA")
+	table["%USERNAME%"] = os.Getenv("USERNAME")
+	table["%USERPROFILE%"] = os.Getenv("USERPROFILE")
+	for k, v := range table {
+		s = strings.ReplaceAll(s, k, v)
+	}
+	return s
+}
