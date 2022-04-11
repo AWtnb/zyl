@@ -18,28 +18,27 @@ import (
 
 func main() {
 	var (
-		datapath string
-		filer    string
-		all      bool
-		exclude  string
+		src     string
+		filer   string
+		all     bool
+		exclude string
 	)
-	flag.StringVar(&datapath, "datapath", "", "databese yaml file")
+	flag.StringVar(&src, "src", "", "source yaml file")
 	flag.StringVar(&filer, "filer", "explorer.exe", "path of filer")
 	flag.BoolVar(&all, "all", false, "switch to search including file")
 	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
 	flag.Parse()
-	os.Exit(run(datapath, filer, all, exclude))
+	os.Exit(run(src, filer, all, exclude))
 }
 
-func run(datapath string, filer string, all bool, exclude string) int {
-	if !util.IsValidPath(datapath) {
-		fmt.Println("cannot find data file...")
-		return 1
+func run(src string, filer string, all bool, exclude string) int {
+	if !util.IsValidPath(src) {
+		src = "./launch.yaml"
 	}
 	if !util.IsValidPath(filer) {
 		filer = "explorer.exe"
 	}
-	lis := loadSource(datapath)
+	lis := loadSource(src)
 	idx, err := fuzzyfinder.Find(lis, func(i int) string {
 		return lis[i].Alias
 	})
