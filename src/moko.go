@@ -139,7 +139,7 @@ func getDisplayName(s string) string {
 }
 
 func loadSource(path string) []LaunchInfo {
-	var lis []LaunchInfo
+	lis := []LaunchInfo{{path, "EDIT", 0}}
 	for _, li := range readFile(path) {
 		p := util.ParsePath(li.Path)
 		if strings.HasPrefix(li.Path, "http") || util.IsValidPath(p) {
