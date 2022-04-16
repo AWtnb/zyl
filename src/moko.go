@@ -23,9 +23,9 @@ func main() {
 		all     bool
 		exclude string
 	)
-	flag.StringVar(&src, "src", "", "source yaml file")
-	flag.StringVar(&filer, "filer", "explorer.exe", "path of filer")
-	flag.BoolVar(&all, "all", false, "switch to search including file")
+	flag.StringVar(&src, "src", "", "source yaml file path")
+	flag.StringVar(&filer, "filer", "explorer.exe", "filer path")
+	flag.BoolVar(&all, "all", false, "switch in order to search including file")
 	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
 	flag.Parse()
 	os.Exit(run(src, filer, all, exclude))
