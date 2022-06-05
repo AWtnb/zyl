@@ -57,11 +57,15 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 0
 	}
 	ld := li.Depth
-	if ld < 0 {
+	if ld == 0 {
 		exec.Command(filer, lp).Start()
 		return 0
 	}
 	cs := walk.GetChildItems(lp, ld, all, util.ToSlice(exclude, ","))
+	if len(cs) < 1 {
+		exec.Command(filer, lp).Start()
+		return 0
+	}
 	c, err := selectPath(lp, cs)
 	if err != nil {
 		return 1
@@ -83,9 +87,6 @@ func formatChildPath(root string, child string) string {
 }
 
 func selectPath(root string, paths []string) (string, error) {
-	if len(paths) < 1 {
-		return root, nil
-	}
 	if len(paths) == 1 {
 		return paths[0], nil
 	}
