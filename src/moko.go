@@ -106,7 +106,7 @@ type LaunchInfo struct {
 	Depth int
 }
 
-func loadYaml(fileBuffer []byte) ([]LaunchInfo, error) {
+func parseYaml(fileBuffer []byte) ([]LaunchInfo, error) {
 	var data []LaunchInfo
 	err := yaml.Unmarshal(fileBuffer, &data)
 	if err != nil {
@@ -115,13 +115,13 @@ func loadYaml(fileBuffer []byte) ([]LaunchInfo, error) {
 	return data, nil
 }
 
-func readFile(path string) []LaunchInfo {
+func readYaml(path string) []LaunchInfo {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		fmt.Println(err)
 		return []LaunchInfo{}
 	}
-	yml, err := loadYaml(buf)
+	yml, err := parseYaml(buf)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -140,7 +140,7 @@ func getDisplayName(s string) string {
 
 func loadSource(path string) []LaunchInfo {
 	lis := []LaunchInfo{{path, "EDIT", 0}}
-	for _, li := range readFile(path) {
+	for _, li := range readYaml(path) {
 		p := util.ParsePath(li.Path)
 		if strings.HasPrefix(li.Path, "http") || util.IsValidPath(p) {
 			var l LaunchInfo
