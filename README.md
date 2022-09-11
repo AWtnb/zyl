@@ -33,5 +33,5 @@ Usage of moko.exe:
 
 + `alias` : Name displayed during a fuzzy search. Default is the file or folder name at the end of the path.
 + `depth` : Specifies the depth of hierarchy when searching folders.
-    + `0` (default) : Search all folders except hidden folders.
-    + `-1` : Open the selected folder in the filer without searching for subordinate folders.
+    + `0` (default) : Open the selected folder in the filer without searching for subfolders.
+    + `-1` : Search all folders except hidden folders.
