@@ -2,17 +2,14 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io/ioutil"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/AWtnb/moko/launchentry"
 	"github.com/AWtnb/moko/util"
 	"github.com/AWtnb/moko/walk"
-	"github.com/go-yaml/yaml"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
@@ -25,38 +22,33 @@ func main() {
 	)
 	flag.StringVar(&src, "src", "", "source yaml file path")
 	flag.StringVar(&filer, "filer", "explorer.exe", "filer path")
-	flag.BoolVar(&all, "all", false, "switch in order to search including file")
+	flag.BoolVar(&all, "all", false, "switch to search including file")
 	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
 	flag.Parse()
 	os.Exit(run(src, filer, all, exclude))
 }
 
 func run(src string, filer string, all bool, exclude string) int {
-	if !util.IsValidPath(src) {
+	if len(src) < 1 {
 		p, _ := os.Executable()
 		src = filepath.Join(filepath.Dir(p), "launch.yaml")
-		if !util.IsValidPath(src) {
-			fmt.Println("need to specify source file!")
-			return 1
-		}
 	}
-	if !util.IsValidPath(filer) {
-		filer = "explorer.exe"
-	}
-	lis := loadSource(src)
-	idx, err := fuzzyfinder.Find(lis, func(i int) string {
-		return lis[i].Alias
+	les := launchentry.Load(src)
+	idx, err := fuzzyfinder.Find(les, func(i int) string {
+		return les[i].Alias
 	})
 	if err != nil {
 		return 1
 	}
-	li := lis[idx]
-	lp := li.Path
-	if util.IsExecutable(lp) {
+	lp := les[idx].Path
+	ld := les[idx].Depth
+	if !util.IsDir(lp) {
+		if !strings.HasPrefix(lp, "http") && !util.IsValidPath(lp) {
+			return 1
+		}
 		util.ExecuteFile(lp)
 		return 0
 	}
-	ld := li.Depth
 	if ld == 0 {
 		exec.Command(filer, lp).Start()
 		return 0
@@ -66,94 +58,28 @@ func run(src string, filer string, all bool, exclude string) int {
 		exec.Command(filer, lp).Start()
 		return 0
 	}
-	c, err := selectPath(lp, cs)
+	c, err := selectChildren(lp, cs)
 	if err != nil {
 		return 1
 	}
-	if util.IsExecutable(c) {
+	if util.IsDir(c) {
+		exec.Command(filer, c).Start()
+	} else {
 		util.ExecuteFile(c)
-		return 0
 	}
-	exec.Command(filer, c).Start()
 	return 0
 }
 
-func formatChildPath(root string, child string) string {
-	rel, _ := filepath.Rel(root, child)
-	if fi, _ := os.Stat(child); fi.IsDir() && !util.HasFile(child) {
-		return rel + "$"
-	}
-	return rel
-}
-
-func selectPath(root string, paths []string) (string, error) {
+func selectChildren(root string, paths []string) (string, error) {
 	if len(paths) == 1 {
 		return paths[0], nil
 	}
 	idx, err := fuzzyfinder.Find(paths, func(i int) string {
-		return formatChildPath(root, paths[i])
+		rel, _ := filepath.Rel(root, paths[i])
+		return rel
 	})
 	if err != nil {
 		return "", err
 	}
 	return paths[idx], nil
-}
-
-// loading yaml
-
-type LaunchInfo struct {
-	Path  string
-	Alias string
-	Depth int
-}
-
-func parseYaml(fileBuffer []byte) ([]LaunchInfo, error) {
-	var data []LaunchInfo
-	err := yaml.Unmarshal(fileBuffer, &data)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return data, nil
-}
-
-func readYaml(path string) []LaunchInfo {
-	buf, err := ioutil.ReadFile(path)
-	if err != nil {
-		fmt.Println(err)
-		return []LaunchInfo{}
-	}
-	yml, err := parseYaml(buf)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return yml
-}
-
-func getDisplayName(s string) string {
-	if strings.HasPrefix(s, "http") {
-		if u, err := url.Parse(s); err == nil {
-			return fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
-		}
-		return s
-	}
-	return filepath.Base(s)
-}
-
-func loadSource(path string) []LaunchInfo {
-	lis := []LaunchInfo{{path, "EDIT", 0}}
-	for _, li := range readYaml(path) {
-		p := util.ParsePath(li.Path)
-		if strings.HasPrefix(li.Path, "http") || util.IsValidPath(p) {
-			var l LaunchInfo
-			l.Path = p
-			l.Depth = li.Depth
-			if len(li.Alias) > 0 {
-				l.Alias = li.Alias
-			} else {
-				l.Alias = getDisplayName(p)
-			}
-			lis = append(lis, l)
-		}
-	}
-	return lis
 }

@@ -1,24 +1,10 @@
 package util
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 )
-
-func HasFile(path string) bool {
-	nf := 0
-	items, err := ioutil.ReadDir(path)
-	if err == nil {
-		for _, item := range items {
-			if !item.IsDir() {
-				nf++
-			}
-		}
-	}
-	return nf > 0
-}
 
 func ExecuteFile(path string) {
 	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
@@ -29,12 +15,11 @@ func IsValidPath(filename string) bool {
 	return err == nil
 }
 
-func IsExecutable(path string) bool {
-	if strings.HasPrefix(path, "http") {
+func IsDir(path string) bool {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
 		return true
 	}
-	fi, _ := os.Stat(path)
-	return !fi.IsDir()
+	return false
 }
 
 func ToSlice(s string, sep string) []string {
@@ -51,7 +36,7 @@ var envMap = map[string]string{
 	"%USERPROFILE%": os.Getenv("USERPROFILE"),
 }
 
-func ParsePath(s string) string {
+func ResolveEnvPath(s string) string {
 	for k, v := range envMap {
 		s = strings.ReplaceAll(s, k, v)
 	}
