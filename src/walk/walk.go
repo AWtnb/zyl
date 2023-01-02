@@ -17,7 +17,7 @@ func sliceContains(slc []string, str string) bool {
 }
 
 func getDepth(path string) int {
-	return strings.Count(strings.Trim(path, "\\"), string(filepath.Separator))
+	return strings.Count(strings.TrimSuffix(path, string(filepath.Separator)), string(filepath.Separator))
 }
 
 func GetChildItems(root string, depth int, all bool, exclude []string) []string {
