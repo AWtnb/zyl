@@ -7,30 +7,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/AWtnb/moko/util"
 	"gopkg.in/yaml.v2"
 )
 
-type LaunchEntry struct {
-	Path  string
-	Alias string
-	Depth int
-}
-
-func yamlToEntries(path string) ([]LaunchEntry, error) {
-	buf := readFile(path)
-	var le []LaunchEntry
-	err := yaml.Unmarshal(buf, &le)
-	return le, err
-}
-
-func readFile(path string) []byte {
+func readFile(path string) ([]byte, error) {
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Println(err)
-		return []byte{}
+		return []byte{}, err
 	}
-	return buf
+	return buf, nil
 }
 
 func getDisplayName(s string) string {
@@ -43,18 +28,41 @@ func getDisplayName(s string) string {
 	return filepath.Base(s)
 }
 
-func Load(path string) []LaunchEntry {
-	les := []LaunchEntry{{path, "EDIT", 0}}
-	es, err := yamlToEntries(path)
+var envMap = map[string]string{
+	"%APPDATA%":     os.Getenv("APPDATA"),
+	"%USERNAME%":    os.Getenv("USERNAME"),
+	"%USERPROFILE%": os.Getenv("USERPROFILE"),
+}
+
+func resolveEnvPath(s string) string {
+	for k, v := range envMap {
+		s = strings.ReplaceAll(s, k, v)
+	}
+	return s
+}
+
+type LaunchEntry struct {
+	Path  string
+	Alias string
+	Depth int
+}
+
+func Load(path string) ([]LaunchEntry, error) {
+	rawEtrs := []LaunchEntry{}
+	buf, err := readFile(path)
 	if err != nil {
-		fmt.Println(err)
+		return rawEtrs, err
 	}
-	for _, le := range es {
-		le.Path = util.ResolveEnvPath(le.Path)
-		if len(le.Alias) < 1 {
-			le.Alias = getDisplayName(le.Path)
+	if err := yaml.Unmarshal(buf, &rawEtrs); err != nil {
+		return rawEtrs, err
+	}
+	lauchEtrs := []LaunchEntry{{path, "EDIT", 0}}
+	for _, etr := range rawEtrs {
+		etr.Path = resolveEnvPath(etr.Path)
+		if len(etr.Alias) < 1 {
+			etr.Alias = getDisplayName(etr.Path)
 		}
-		les = append(les, le)
+		lauchEtrs = append(lauchEtrs, etr)
 	}
-	return les
+	return lauchEtrs, nil
 }

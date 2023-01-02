@@ -2,13 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/AWtnb/moko/launchentry"
-	"github.com/AWtnb/moko/util"
 	"github.com/AWtnb/moko/walk"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
@@ -28,46 +28,32 @@ func main() {
 	os.Exit(run(src, filer, all, exclude))
 }
 
-func run(src string, filer string, all bool, exclude string) int {
-	if len(src) < 1 {
-		p, _ := os.Executable()
-		src = filepath.Join(filepath.Dir(p), "launch.yaml")
+func executeFile(path string) {
+	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
+}
+
+func openDir(filer string, path string) {
+	exec.Command(filer, path).Start()
+}
+
+func isValidPath(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
+
+func isDir(path string) bool {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
+		return true
 	}
-	les := launchentry.Load(src)
-	idx, err := fuzzyfinder.Find(les, func(i int) string {
-		return les[i].Alias
-	})
-	if err != nil {
-		return 1
+	return false
+}
+
+func toSlice(s string, sep string) []string {
+	var ss []string
+	for _, elem := range strings.Split(s, sep) {
+		ss = append(ss, strings.TrimSpace(elem))
 	}
-	lp := les[idx].Path
-	ld := les[idx].Depth
-	if !util.IsDir(lp) {
-		if !strings.HasPrefix(lp, "http") && !util.IsValidPath(lp) {
-			return 1
-		}
-		util.ExecuteFile(lp)
-		return 0
-	}
-	if ld == 0 {
-		exec.Command(filer, lp).Start()
-		return 0
-	}
-	cs := walk.GetChildItems(lp, ld, all, util.ToSlice(exclude, ","))
-	if len(cs) < 1 {
-		exec.Command(filer, lp).Start()
-		return 0
-	}
-	c, err := selectChildren(lp, cs)
-	if err != nil {
-		return 1
-	}
-	if util.IsDir(c) {
-		exec.Command(filer, c).Start()
-	} else {
-		util.ExecuteFile(c)
-	}
-	return 0
+	return ss
 }
 
 func selectChildren(root string, paths []string) (string, error) {
@@ -82,4 +68,58 @@ func selectChildren(root string, paths []string) (string, error) {
 		return "", err
 	}
 	return paths[idx], nil
+}
+
+func run(src string, filer string, all bool, exclude string) int {
+	if len(src) < 1 {
+		p, _ := os.Executable()
+		src = filepath.Join(filepath.Dir(p), "launch.yaml")
+	}
+	les, err := launchentry.Load(src)
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
+	idx, err := fuzzyfinder.Find(les, func(i int) string {
+		return les[i].Alias
+	})
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
+	lp := les[idx].Path
+	ld := les[idx].Depth
+	if !isDir(lp) {
+		if !strings.HasPrefix(lp, "http") && !isValidPath(lp) {
+			err := fmt.Errorf("invalid path: %s", lp)
+			fmt.Println(err.Error())
+			return 1
+		}
+		executeFile(lp)
+		return 0
+	}
+	if ld == 0 {
+		openDir(filer, lp)
+		return 0
+	}
+	cs, err := walk.GetChildItems(lp, ld, all, toSlice(exclude, ","))
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
+	if len(cs) < 1 {
+		openDir(filer, lp)
+		return 0
+	}
+	c, err := selectChildren(lp, cs)
+	if err != nil {
+		fmt.Println(err)
+		return 1
+	}
+	if isDir(c) {
+		openDir(filer, c)
+	} else {
+		executeFile(c)
+	}
+	return 0
 }

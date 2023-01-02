@@ -1,7 +1,6 @@
 package walk
 
 import (
-	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -20,7 +19,7 @@ func getDepth(path string) int {
 	return strings.Count(strings.TrimSuffix(path, string(filepath.Separator)), string(filepath.Separator))
 }
 
-func GetChildItems(root string, depth int, all bool, exclude []string) []string {
+func GetChildItems(root string, depth int, all bool, exclude []string) ([]string, error) {
 	var items []string
 	rd := getDepth(root)
 	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
@@ -45,8 +44,5 @@ func GetChildItems(root string, depth int, all bool, exclude []string) []string 
 		}
 		return nil
 	})
-	if err != nil {
-		fmt.Println("failed to traverse directory...")
-	}
-	return items
+	return items, err
 }
