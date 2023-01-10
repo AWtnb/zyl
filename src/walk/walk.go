@@ -32,15 +32,15 @@ func GetChildItems(root string, depth int, all bool, exclude []string) ([]string
 		if sliceContains(exclude, info.Name()) {
 			return filepath.SkipDir
 		}
-		if all {
-			items = append(items, path)
-			return nil
-		}
 		if info.IsDir() {
 			if strings.HasPrefix(info.Name(), ".") {
 				return filepath.SkipDir
 			}
 			items = append(items, path)
+		} else {
+			if all {
+				items = append(items, path)
+			}
 		}
 		return nil
 	})
