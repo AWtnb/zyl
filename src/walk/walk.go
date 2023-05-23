@@ -21,6 +21,9 @@ func getDepth(path string) int {
 
 func GetChildItems(root string, depth int, all bool, exclude []string) ([]string, error) {
 	var items []string
+	if (depth == 0) {
+		return items, nil
+	}
 	rd := getDepth(root)
 	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {

@@ -98,10 +98,6 @@ func run(src string, filer string, all bool, exclude string) int {
 		executeFile(lp)
 		return 0
 	}
-	if ld == 0 {
-		openDir(filer, lp)
-		return 0
-	}
 	cs, err := walk.GetChildItems(lp, ld, all, toSlice(exclude, ","))
 	if err != nil {
 		fmt.Println(err)
