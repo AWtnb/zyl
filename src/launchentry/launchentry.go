@@ -56,13 +56,13 @@ func Load(path string) ([]LaunchEntry, error) {
 	if err := yaml.Unmarshal(buf, &rawEtrs); err != nil {
 		return rawEtrs, err
 	}
-	lauchEtrs := []LaunchEntry{{path, "EDIT", 0}}
+	launchEtrs := []LaunchEntry{{path, "EDIT", 0}}
 	for _, etr := range rawEtrs {
 		etr.Path = resolveEnvPath(etr.Path)
 		if len(etr.Alias) < 1 {
 			etr.Alias = getDisplayName(etr.Path)
 		}
-		lauchEtrs = append(lauchEtrs, etr)
+		launchEtrs = append(launchEtrs, etr)
 	}
-	return lauchEtrs, nil
+	return launchEtrs, nil
 }
