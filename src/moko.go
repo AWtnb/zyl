@@ -84,7 +84,9 @@ func run(src string, filer string, all bool, exclude string) int {
 		return les[i].Alias
 	})
 	if err != nil {
-		fmt.Println(err)
+		if err != fuzzyfinder.ErrAbort {
+			fmt.Println(err)
+		}
 		return 1
 	}
 	lp := les[idx].Path
@@ -109,7 +111,9 @@ func run(src string, filer string, all bool, exclude string) int {
 	}
 	c, err := selectChildren(lp, cs)
 	if err != nil {
-		fmt.Println(err)
+		if err != fuzzyfinder.ErrAbort {
+			fmt.Println(err)
+		}
 		return 1
 	}
 	if isDir(c) {
