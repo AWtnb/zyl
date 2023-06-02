@@ -28,19 +28,6 @@ func getDisplayName(s string) string {
 	return filepath.Base(s)
 }
 
-var envMap = map[string]string{
-	"%APPDATA%":     os.Getenv("APPDATA"),
-	"%USERNAME%":    os.Getenv("USERNAME"),
-	"%USERPROFILE%": os.Getenv("USERPROFILE"),
-}
-
-func resolveEnvPath(s string) string {
-	for k, v := range envMap {
-		s = strings.ReplaceAll(s, k, v)
-	}
-	return s
-}
-
 type LaunchEntry struct {
 	Path  string
 	Alias string
@@ -58,7 +45,7 @@ func Load(path string) ([]LaunchEntry, error) {
 	}
 	launchEtrs := []LaunchEntry{{path, "EDIT", 0}}
 	for _, etr := range rawEtrs {
-		etr.Path = resolveEnvPath(etr.Path)
+		etr.Path = os.ExpandEnv(etr.Path)
 		if len(etr.Alias) < 1 {
 			etr.Alias = getDisplayName(etr.Path)
 		}
