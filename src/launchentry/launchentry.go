@@ -34,22 +34,35 @@ type LaunchEntry struct {
 	Depth int
 }
 
+func (le *LaunchEntry) setAlias() {
+	if le == nil {
+		return
+	}
+	if len(le.Alias) < 1 {
+		le.Alias = getDisplayName(le.Path)
+	}
+}
+
+func (le *LaunchEntry) resolvePath() {
+	if le == nil {
+		return
+	}
+	le.Path = os.ExpandEnv(le.Path)
+}
+
 func Load(path string) ([]LaunchEntry, error) {
-	rawEtrs := []LaunchEntry{}
+	les := []LaunchEntry{}
 	buf, err := readFile(path)
 	if err != nil {
-		return rawEtrs, err
+		return les, err
 	}
-	if err := yaml.Unmarshal(buf, &rawEtrs); err != nil {
-		return rawEtrs, err
+	if err := yaml.Unmarshal(buf, &les); err != nil {
+		return les, err
 	}
-	launchEtrs := []LaunchEntry{{path, "EDIT", 0}}
-	for _, etr := range rawEtrs {
-		etr.Path = os.ExpandEnv(etr.Path)
-		if len(etr.Alias) < 1 {
-			etr.Alias = getDisplayName(etr.Path)
-		}
-		launchEtrs = append(launchEtrs, etr)
+	les = append([]LaunchEntry{{path, "EDIT", 0}}, les...)
+	for i := 0; i < len(les); i++ {
+		les[i].resolvePath()
+		les[i].setAlias()
 	}
-	return launchEtrs, nil
+	return les, err
 }
