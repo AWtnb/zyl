@@ -1,7 +1,7 @@
-- path: C:\Users\%USERNAME%\Desktop
+- path: C:\Users\${USERNAME}\Desktop
   alias:
   depth: -1
 
-- path: C:\Users\%USERNAME%\Dropbox
+- path: C:\Users\${USERNAME}\Dropbox
   alias: dbx
   depth: 3
