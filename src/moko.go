@@ -91,12 +91,16 @@ func run(src string, filer string, all bool, exclude string) int {
 	}
 	lp := les[idx].Path
 	ld := les[idx].Depth
+	if strings.HasPrefix(lp, "http") {
+		executeFile(lp)
+		return 0
+	}
+	if !isValidPath(lp) {
+		err := fmt.Errorf("invalid path: %s", lp)
+		fmt.Println(err.Error())
+		return 1
+	}
 	if !isDir(lp) {
-		if !strings.HasPrefix(lp, "http") && !isValidPath(lp) {
-			err := fmt.Errorf("invalid path: %s", lp)
-			fmt.Println(err.Error())
-			return 1
-		}
 		executeFile(lp)
 		return 0
 	}
