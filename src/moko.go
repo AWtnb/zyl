@@ -48,17 +48,6 @@ func isDir(path string) bool {
 	return false
 }
 
-func toSlice(s string, sep string) []string {
-	var ss []string
-	if len(s) < 1 {
-		return ss
-	}
-	for _, elem := range strings.Split(s, sep) {
-		ss = append(ss, strings.TrimSpace(elem))
-	}
-	return ss
-}
-
 func selectChildren(root string, paths []string) (string, error) {
 	if len(paths) == 1 {
 		return paths[0], nil
@@ -107,7 +96,7 @@ func run(src string, filer string, all bool, exclude string) int {
 		executeFile(lp)
 		return 0
 	}
-	cs, err := walk.GetChildItems(lp, ld, all, toSlice(exclude, ","))
+	cs, err := walk.GetChildItems(lp, ld, all, exclude)
 	if err != nil {
 		fmt.Println(err)
 		return 1
