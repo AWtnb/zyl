@@ -18,36 +18,44 @@ func readFile(path string) ([]byte, error) {
 	return buf, nil
 }
 
-func getDisplayName(s string) string {
-	if strings.HasPrefix(s, "http") {
-		if u, err := url.Parse(s); err == nil {
-			return fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
-		}
-		return s
-	}
-	return filepath.Base(s)
+type LaunchEntry struct {
+	path  string
+	alias string
+	depth int
 }
 
-type LaunchEntry struct {
-	Path  string
-	Alias string
-	Depth int
+func (le LaunchEntry) Path() string {
+	return le.path
+}
+func (le LaunchEntry) Alias() string {
+	return le.alias
+}
+func (le LaunchEntry) Depth() int {
+	return le.depth
 }
 
 func (le *LaunchEntry) setAlias() {
 	if le == nil {
 		return
 	}
-	if len(le.Alias) < 1 {
-		le.Alias = getDisplayName(le.Path)
+	if 0 < len(le.Alias()) {
+		return
 	}
+	if strings.HasPrefix(le.Path(), "http") {
+		if u, err := url.Parse(le.Path()); err == nil {
+			le.alias = fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
+			return
+		}
+		le.alias = le.Path()
+	}
+	le.alias = filepath.Base(le.Path())
 }
 
 func (le *LaunchEntry) resolvePath() {
 	if le == nil {
 		return
 	}
-	le.Path = os.ExpandEnv(le.Path)
+	le.path = os.ExpandEnv(le.Path())
 }
 
 func Load(path string) ([]LaunchEntry, error) {

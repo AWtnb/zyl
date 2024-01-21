@@ -73,7 +73,7 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 1
 	}
 	idx, err := fuzzyfinder.Find(les, func(i int) string {
-		return les[i].Alias
+		return les[i].Alias()
 	})
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
@@ -81,8 +81,8 @@ func run(src string, filer string, all bool, exclude string) int {
 		}
 		return 1
 	}
-	lp := les[idx].Path
-	ld := les[idx].Depth
+	lp := les[idx].Path()
+	ld := les[idx].Depth()
 	if strings.HasPrefix(lp, "http") {
 		executeFile(lp)
 		return 0
