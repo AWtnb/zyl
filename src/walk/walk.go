@@ -63,7 +63,6 @@ type ChildItems struct {
 	rootDepth int
 	maxDepth  int
 	sep       string
-	paths     []string
 }
 
 func (ci *ChildItems) setRoot(path string) {
@@ -78,19 +77,19 @@ func (ci ChildItems) isSkippableDepth(path string) bool {
 	return 0 < ci.maxDepth && ci.maxDepth < ci.getDepth(path)-ci.rootDepth
 }
 
-func (ci ChildItems) filterByDepth() []string {
+func (ci ChildItems) filterByDepth(paths []string) (filteredPaths []string) {
 	if ci.maxDepth < 0 {
-		return ci.paths
+		filteredPaths = paths
+		return
 	}
-	sl := []string{}
-	for i := 0; i < len(ci.paths); i++ {
-		p := ci.paths[i]
+	for i := 0; i < len(paths); i++ {
+		p := paths[i]
 		if ci.isSkippableDepth(p) {
 			continue
 		}
-		sl = append(sl, p)
+		filteredPaths = append(filteredPaths, p)
 	}
-	return sl
+	return
 }
 
 type DirEntry struct {
@@ -123,8 +122,7 @@ func (de DirEntry) GetChildItemWithEverything() (found []string, err error) {
 		return
 	}
 	if 0 < len(found) {
-		ci.paths = wex.filter(found)
-		found = ci.filterByDepth()
+		found = ci.filterByDepth(wex.filter(found))
 	}
 	return
 }
