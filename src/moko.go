@@ -97,13 +97,20 @@ func run(src string, filer string, all bool, exclude string) int {
 		src = filepath.Join(filepath.Dir(p), "launch.yaml")
 	}
 
-	selected, err := launchentry.Select(src)
+	var les launchentry.LaunchEntries
+	if err := les.Load(src); err != nil {
+		fmt.Println(err)
+		return 1
+	}
+
+	selected, err := les.Select()
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			fmt.Println(err)
 		}
 		return 1
 	}
+
 	var se SelectedEntry
 	se.setEntry(selected)
 	se.setFiler(filer)
@@ -112,6 +119,7 @@ func run(src string, filer string, all bool, exclude string) int {
 		se.openSelf()
 		return 0
 	}
+
 	cs, err := se.getChildItem(all, exclude)
 	if err != nil {
 		fmt.Println(err)

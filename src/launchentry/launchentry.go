@@ -59,7 +59,7 @@ type LaunchEntries struct {
 	entries []LaunchEntry
 }
 
-func (les *LaunchEntries) load(path string) error {
+func (les *LaunchEntries) Load(path string) error {
 	buf, err := readFile(path)
 	if err != nil {
 		return err
@@ -69,6 +69,7 @@ func (les *LaunchEntries) load(path string) error {
 		return err
 	}
 	les.entries = entries
+	les.setEditItem(path)
 	return nil
 }
 
@@ -95,19 +96,14 @@ func (les LaunchEntries) validEntries() []LaunchEntry {
 	return sl
 }
 
-func Select(path string) (le LaunchEntry, err error) {
-	var les LaunchEntries
-	if err := les.load(path); err != nil {
-		return le, err
-	}
-	les.setEditItem(path)
+func (les LaunchEntries) Select() (le LaunchEntry, err error) {
 	les.format()
 	candidates := les.validEntries()
 	idx, err := fuzzyfinder.Find(candidates, func(i int) string {
 		return candidates[i].Alias
 	})
 	if err != nil {
-		return le, err
+		return
 	}
 	le = candidates[idx]
 	return
