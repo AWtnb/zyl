@@ -14,7 +14,7 @@ type WalkException struct {
 }
 
 func (wex *WalkException) setNames(s string, sep string) {
-	if len(s) < 1 {
+	if wex == nil || len(s) < 1 {
 		return
 	}
 	for _, elem := range strings.Split(s, sep) {
@@ -67,6 +67,9 @@ type ChildItems struct {
 }
 
 func (ci *ChildItems) setRoot(path string) {
+	if ci == nil {
+		return
+	}
 	ci.rootDepth = ci.getDepth(path)
 }
 
