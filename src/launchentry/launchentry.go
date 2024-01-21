@@ -24,6 +24,11 @@ type LaunchEntry struct {
 	Depth int
 }
 
+func (le LaunchEntry) isValid() bool {
+	_, err := os.Stat(le.Path)
+	return err == nil
+}
+
 func (le *LaunchEntry) resolvePath() {
 	if le == nil {
 		return
@@ -49,19 +54,44 @@ func (le *LaunchEntry) setAlias() {
 	le.Alias = filepath.Base(le.Path)
 }
 
+type LaunchEntries struct {
+	entries []LaunchEntry
+}
+
+func (les *LaunchEntries) format() {
+	for i := 0; i < len(les.entries); i++ {
+		les.entries[i].resolvePath()
+		les.entries[i].setAlias()
+	}
+}
+
+func (les *LaunchEntries) setEditItem(editPath string) {
+	ed := []LaunchEntry{{editPath, "EDIT", 0}}
+	les.entries = append(ed, les.entries...)
+}
+
+func (les LaunchEntries) validEntries() []LaunchEntry {
+	sl := []LaunchEntry{}
+	for i := 0; i < len(les.entries); i++ {
+		ent := les.entries[i]
+		if ent.isValid() {
+			sl = append(sl, ent)
+		}
+	}
+	return sl
+}
+
 func Load(path string) ([]LaunchEntry, error) {
-	les := []LaunchEntry{}
+	yml := []LaunchEntry{}
 	buf, err := readFile(path)
 	if err != nil {
-		return les, err
+		return yml, err
 	}
-	if err := yaml.Unmarshal(buf, &les); err != nil {
-		return les, err
+	if err := yaml.Unmarshal(buf, &yml); err != nil {
+		return yml, err
 	}
-	les = append([]LaunchEntry{{path, "EDIT", 0}}, les...)
-	for i := 0; i < len(les); i++ {
-		les[i].resolvePath()
-		les[i].setAlias()
-	}
-	return les, err
+	les := LaunchEntries{entries: yml}
+	les.setEditItem(path)
+	les.format()
+	return les.validEntries(), nil
 }
