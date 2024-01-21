@@ -66,8 +66,16 @@ func (se SelectedEntry) openSelf() {
 	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", se.path).Start()
 }
 
-func (se SelectedEntry) getChildItem(all bool, exclude string) ([]string, error) {
-	return walk.GetChildItems(se.path, se.depth, all, exclude)
+func (se SelectedEntry) getChildItem(all bool, exclude string) (found []string, err error) {
+	de := walk.DirEntry{Root: se.path, All: all, Depth: se.depth, Exclude: exclude}
+	if strings.HasPrefix(se.path, "C:") {
+		return de.GetChildItem()
+	}
+	found, err = de.GetChildItemWithEverything()
+	if err != nil || len(found) < 1 {
+		found, err = de.GetChildItem()
+	}
+	return
 }
 
 func (se SelectedEntry) selectItem(childPaths []string) (string, error) {

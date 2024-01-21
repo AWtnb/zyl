@@ -14,7 +14,7 @@ type WalkException struct {
 }
 
 func (wex *WalkException) setNames(s string, sep string) {
-	if wex == nil || len(s) < 1 {
+	if len(s) < 1 {
 		return
 	}
 	for _, elem := range strings.Split(s, sep) {
@@ -67,9 +67,6 @@ type ChildItems struct {
 }
 
 func (ci *ChildItems) setRoot(path string) {
-	if ci == nil {
-		return
-	}
 	ci.rootDepth = ci.getDepth(path)
 }
 
@@ -96,24 +93,49 @@ func (ci ChildItems) filterByDepth() []string {
 	return sl
 }
 
-func GetChildItems(root string, depth int, all bool, exclude string) ([]string, error) {
-	var found []string
-	if depth == 0 {
-		return found, nil
-	}
+type DirEntry struct {
+	Root    string
+	All     bool
+	Depth   int
+	Exclude string
+}
 
-	ci := ChildItems{maxDepth: depth, sep: string(filepath.Separator)}
-	ci.setRoot(root)
+func (de DirEntry) getChildItemsHandler() ChildItems {
+	ci := ChildItems{maxDepth: de.Depth, sep: string(filepath.Separator)}
+	ci.setRoot(de.Root)
+	return ci
+}
+
+func (de DirEntry) getExceptionsHandler() WalkException {
 	var wex WalkException
-	wex.setNames(exclude, ",")
-	if !strings.HasPrefix(root, "C:") {
-		found = everything.Scan(root, !all)
-		if 0 < len(found) {
-			ci.paths = wex.filter(found)
-			return ci.filterByDepth(), nil
-		}
+	wex.setNames(de.Exclude, ",")
+	return wex
+}
+
+func (de DirEntry) GetChildItemWithEverything() (found []string, err error) {
+	if de.Depth == 0 {
+		return
 	}
-	err := filepath.WalkDir(root, func(path string, info fs.DirEntry, err error) error {
+	ci := de.getChildItemsHandler()
+	wex := de.getExceptionsHandler()
+	found, err = everything.Scan(de.Root, !de.All)
+	if err != nil {
+		return
+	}
+	if 0 < len(found) {
+		ci.paths = wex.filter(found)
+		found = ci.filterByDepth()
+	}
+	return
+}
+
+func (de DirEntry) GetChildItem() (found []string, err error) {
+	if de.Depth == 0 {
+		return
+	}
+	ci := de.getChildItemsHandler()
+	wex := de.getExceptionsHandler()
+	err = filepath.WalkDir(de.Root, func(path string, info fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -129,11 +151,11 @@ func GetChildItems(root string, depth int, all bool, exclude string) ([]string, 
 			}
 			found = append(found, path)
 		} else {
-			if all {
+			if de.All {
 				found = append(found, path)
 			}
 		}
 		return nil
 	})
-	return found, err
+	return
 }

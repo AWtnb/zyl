@@ -31,16 +31,10 @@ func (le LaunchEntry) isValid() bool {
 }
 
 func (le *LaunchEntry) resolvePath() {
-	if le == nil {
-		return
-	}
 	le.Path = os.ExpandEnv(le.Path)
 }
 
 func (le *LaunchEntry) setAlias() {
-	if le == nil {
-		return
-	}
 	if 0 < len(le.Alias) {
 		return
 	}
