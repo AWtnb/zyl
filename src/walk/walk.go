@@ -82,7 +82,7 @@ func (ci ChildItems) isSkippableDepth(path string) bool {
 }
 
 func (ci ChildItems) filterByDepth() []string {
-	if ci.maxDepth == 0 {
+	if ci.maxDepth < 0 {
 		return ci.paths
 	}
 	sl := []string{}
@@ -97,11 +97,15 @@ func (ci ChildItems) filterByDepth() []string {
 }
 
 func GetChildItems(root string, depth int, all bool, exclude string) ([]string, error) {
+	var found []string
+	if depth == 0 {
+		return found, nil
+	}
+
 	ci := ChildItems{maxDepth: depth, sep: string(filepath.Separator)}
 	ci.setRoot(root)
 	var wex WalkException
 	wex.setNames(exclude, ",")
-	var found []string
 	if !strings.HasPrefix(root, "C:") {
 		found = everything.Scan(root, !all)
 		if 0 < len(found) {
