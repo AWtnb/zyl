@@ -25,11 +25,6 @@ type LaunchEntry struct {
 	Depth int
 }
 
-func (le LaunchEntry) isValid() bool {
-	_, err := os.Stat(le.Path)
-	return err == nil
-}
-
 func (le *LaunchEntry) resolvePath() {
 	le.Path = os.ExpandEnv(le.Path)
 }
@@ -79,20 +74,9 @@ func (les *LaunchEntries) setEditItem(editPath string) {
 	les.entries = append(ed, les.entries...)
 }
 
-func (les LaunchEntries) validEntries() []LaunchEntry {
-	sl := []LaunchEntry{}
-	for i := 0; i < len(les.entries); i++ {
-		ent := les.entries[i]
-		if ent.isValid() {
-			sl = append(sl, ent)
-		}
-	}
-	return sl
-}
-
 func (les LaunchEntries) Select() (le LaunchEntry, err error) {
 	les.format()
-	candidates := les.validEntries()
+	candidates := les.entries
 	idx, err := fuzzyfinder.Find(candidates, func(i int) string {
 		return candidates[i].Alias
 	})

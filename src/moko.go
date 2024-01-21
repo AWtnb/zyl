@@ -47,6 +47,11 @@ func (se *SelectedEntry) setFiler(path string) {
 	se.filer = "explorer.exe"
 }
 
+func (se SelectedEntry) isValid() bool {
+	_, err := os.Stat(se.path)
+	return err == nil
+}
+
 func (se SelectedEntry) isDir() bool {
 	if fi, err := os.Stat(se.path); err == nil && fi.IsDir() {
 		return true
@@ -121,6 +126,11 @@ func run(src string, filer string, all bool, exclude string) int {
 
 	var se SelectedEntry
 	se.setEntry(selected)
+	if !se.isValid() {
+		fmt.Printf("invalid path: '%s'\n", selected.Path)
+		return 1
+	}
+
 	se.setFiler(filer)
 
 	if se.isExecutable() {
