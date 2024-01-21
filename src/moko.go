@@ -96,6 +96,7 @@ func run(src string, filer string, all bool, exclude string) int {
 		p, _ := os.Executable()
 		src = filepath.Join(filepath.Dir(p), "launch.yaml")
 	}
+
 	selected, err := launchentry.Select(src)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
@@ -128,10 +129,5 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 1
 	}
 	se.open(c)
-	// if isDir(c) {
-	// 	openDir(filer, c)
-	// } else {
-	// 	executeFile(c)
-	// }
 	return 0
 }

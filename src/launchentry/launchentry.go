@@ -95,10 +95,10 @@ func (les LaunchEntries) validEntries() []LaunchEntry {
 	return sl
 }
 
-func Select(path string) (LaunchEntry, error) {
+func Select(path string) (le LaunchEntry, err error) {
 	var les LaunchEntries
 	if err := les.load(path); err != nil {
-		return LaunchEntry{}, err
+		return le, err
 	}
 	les.setEditItem(path)
 	les.format()
@@ -107,7 +107,8 @@ func Select(path string) (LaunchEntry, error) {
 		return candidates[i].Alias
 	})
 	if err != nil {
-		return LaunchEntry{}, err
+		return le, err
 	}
-	return candidates[idx], nil
+	le = candidates[idx]
+	return
 }
