@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/ktr0731/go-fuzzyfinder"
 	"gopkg.in/yaml.v2"
 )
 
@@ -58,6 +59,19 @@ type LaunchEntries struct {
 	entries []LaunchEntry
 }
 
+func (les *LaunchEntries) load(path string) error {
+	buf, err := readFile(path)
+	if err != nil {
+		return err
+	}
+	entries := []LaunchEntry{}
+	if err := yaml.Unmarshal(buf, &entries); err != nil {
+		return err
+	}
+	les.entries = entries
+	return nil
+}
+
 func (les *LaunchEntries) format() {
 	for i := 0; i < len(les.entries); i++ {
 		les.entries[i].resolvePath()
@@ -81,17 +95,19 @@ func (les LaunchEntries) validEntries() []LaunchEntry {
 	return sl
 }
 
-func Load(path string) ([]LaunchEntry, error) {
-	yml := []LaunchEntry{}
-	buf, err := readFile(path)
-	if err != nil {
-		return yml, err
+func Select(path string) (LaunchEntry, error) {
+	var les LaunchEntries
+	if err := les.load(path); err != nil {
+		return LaunchEntry{}, err
 	}
-	if err := yaml.Unmarshal(buf, &yml); err != nil {
-		return yml, err
-	}
-	les := LaunchEntries{entries: yml}
 	les.setEditItem(path)
 	les.format()
-	return les.validEntries(), nil
+	candidates := les.validEntries()
+	idx, err := fuzzyfinder.Find(candidates, func(i int) string {
+		return candidates[i].Alias
+	})
+	if err != nil {
+		return LaunchEntry{}, err
+	}
+	return candidates[idx], nil
 }
