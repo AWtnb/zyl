@@ -72,13 +72,15 @@ func (se SelectedEntry) openSelf() {
 }
 
 func (se SelectedEntry) getChildItem(all bool, exclude string) (found []string, err error) {
-	de := walk.DirEntry{Root: se.path, All: all, Depth: se.depth, Exclude: exclude}
+	dw := walk.DirWalker{All: all, Root: se.path}
+	dw.ChildItemsHandler(se.depth)
+	dw.ExceptionHandler(exclude)
 	if strings.HasPrefix(se.path, "C:") {
-		return de.GetChildItem()
+		return dw.GetChildItem()
 	}
-	found, err = de.GetChildItemWithEverything()
+	found, err = dw.GetChildItemWithEverything()
 	if err != nil || len(found) < 1 {
-		found, err = de.GetChildItem()
+		found, err = dw.GetChildItem()
 	}
 	return
 }
