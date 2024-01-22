@@ -4,12 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/AWtnb/moko/launchentry"
-	"github.com/AWtnb/moko/walk"
+	"github.com/AWtnb/moko/selectedentry"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
@@ -26,84 +24,6 @@ func main() {
 	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
 	flag.Parse()
 	os.Exit(run(src, filer, all, exclude))
-}
-
-type SelectedEntry struct {
-	path  string
-	depth int
-	filer string
-}
-
-func (se *SelectedEntry) setEntry(entry launchentry.LaunchEntry) {
-	se.path = entry.Path
-	se.depth = entry.Depth
-}
-
-func (se *SelectedEntry) setFiler(path string) {
-	if _, err := os.Stat(path); err == nil {
-		se.filer = path
-		return
-	}
-	se.filer = "explorer.exe"
-}
-
-func (se SelectedEntry) isValid() bool {
-	_, err := os.Stat(se.path)
-	return err == nil
-}
-
-func (se SelectedEntry) isDir() bool {
-	if fi, err := os.Stat(se.path); err == nil && fi.IsDir() {
-		return true
-	}
-	return false
-}
-
-func (se SelectedEntry) isExecutable() bool {
-	return strings.HasPrefix(se.path, "http") || !se.isDir()
-}
-
-func (se SelectedEntry) openSelf() {
-	if se.isDir() {
-		exec.Command(se.filer, se.path).Start()
-		return
-	}
-	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", se.path).Start()
-}
-
-func (se SelectedEntry) getChildItem(all bool, exclude string) (found []string, err error) {
-	dw := walk.DirWalker{All: all, Root: se.path}
-	dw.ChildItemsHandler(se.depth)
-	dw.ExceptionHandler(exclude)
-	if strings.HasPrefix(se.path, "C:") {
-		return dw.GetChildItem()
-	}
-	found, err = dw.GetChildItemWithEverything()
-	if err != nil || len(found) < 1 {
-		found, err = dw.GetChildItem()
-	}
-	return
-}
-
-func (se SelectedEntry) selectItem(childPaths []string) (string, error) {
-	if len(childPaths) == 1 {
-		return childPaths[0], nil
-	}
-	idx, err := fuzzyfinder.Find(childPaths, func(i int) string {
-		rel, _ := filepath.Rel(se.path, childPaths[i])
-		return rel
-	})
-	if err != nil {
-		return "", err
-	}
-	return childPaths[idx], nil
-}
-
-func (se SelectedEntry) open(path string) {
-	var item SelectedEntry
-	item.path = path
-	item.setFiler(se.filer)
-	item.openSelf()
 }
 
 func run(src string, filer string, all bool, exclude string) int {
@@ -126,36 +46,36 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 1
 	}
 
-	var se SelectedEntry
-	se.setEntry(selected)
-	if !se.isValid() {
+	var se selectedentry.SelectedEntry
+	se.SetEntry(selected)
+	if !se.IsValid() {
 		fmt.Printf("invalid path: '%s'\n", selected.Path)
 		return 1
 	}
 
-	se.setFiler(filer)
+	se.SetFiler(filer)
 
-	if se.isExecutable() {
-		se.openSelf()
+	if se.IsExecutable() {
+		se.OpenSelf()
 		return 0
 	}
 
-	cs, err := se.getChildItem(all, exclude)
+	cs, err := se.GetChildItem(all, exclude)
 	if err != nil {
 		fmt.Println(err)
 		return 1
 	}
 	if len(cs) < 1 {
-		se.openSelf()
+		se.OpenSelf()
 		return 0
 	}
-	c, err := se.selectItem(cs)
+	c, err := se.SelectItem(cs)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			fmt.Println(err)
 		}
 		return 1
 	}
-	se.open(c)
+	se.Open(c)
 	return 0
 }
