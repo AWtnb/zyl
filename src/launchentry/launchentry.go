@@ -11,14 +11,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func readFile(path string) ([]byte, error) {
-	buf, err := os.ReadFile(path)
-	if err != nil {
-		return []byte{}, err
-	}
-	return buf, nil
-}
-
 type LaunchEntry struct {
 	Path  string
 	Alias string
@@ -49,7 +41,7 @@ type LaunchEntries struct {
 }
 
 func (les *LaunchEntries) Load(path string) error {
-	buf, err := readFile(path)
+	buf, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}
