@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/AWtnb/moko/everything/core"
 )
 
 func Scan(query string, skipFile bool) ([]string, error) {
@@ -14,7 +12,7 @@ func Scan(query string, skipFile bool) ([]string, error) {
 	if err := checkDll("Everything64.dll"); err != nil {
 		return sl, fmt.Errorf("failed to load Everything64.dll")
 	}
-	core.Walk(query, skipFile, func(path string, isFile bool) error {
+	Walk(query, skipFile, func(path string, isFile bool) error {
 		if skipFile && isFile {
 			return nil
 		}

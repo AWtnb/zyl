@@ -1,4 +1,4 @@
-package walkexception
+package walk
 
 import (
 	"os"

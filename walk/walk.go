@@ -7,25 +7,23 @@ import (
 	"strings"
 
 	"github.com/AWtnb/moko/everything"
-	"github.com/AWtnb/moko/walk/dirmember"
-	"github.com/AWtnb/moko/walk/walkexception"
 )
 
 type DirWalker struct {
 	All        bool
 	Root       string
-	member     dirmember.DirMember
-	exeception walkexception.WalkException
+	member     DirMember
+	exeception WalkException
 }
 
 func (dw *DirWalker) ChildItemsHandler(depth int) {
-	dm := dirmember.DirMember{MaxDepth: depth, Sep: string(os.PathSeparator)}
+	dm := DirMember{MaxDepth: depth, Sep: string(os.PathSeparator)}
 	dm.SetRoot(dw.Root)
 	dw.member = dm
 }
 
 func (dw *DirWalker) ExceptionHandler(exclude string) {
-	var wex walkexception.WalkException
+	var wex WalkException
 	wex.SetNames(exclude, ",")
 	dw.exeception = wex
 }

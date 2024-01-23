@@ -1,4 +1,4 @@
-package dirmember
+package walk
 
 import (
 	"strings"
