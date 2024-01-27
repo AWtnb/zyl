@@ -56,8 +56,8 @@ func (se SelectedEntry) OpenSelf() {
 
 func (se SelectedEntry) GetChildItem(all bool, exclude string) (found []string, err error) {
 	dw := walk.DirWalker{All: all, Root: se.path}
-	dw.ChildItemsHandler(se.depth)
-	dw.ExceptionHandler(exclude)
+	dw.SetWalkDepth(se.depth)
+	dw.SetWalkException(exclude)
 	if strings.HasPrefix(se.path, "C:") {
 		return dw.GetChildItem()
 	}

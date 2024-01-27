@@ -16,13 +16,13 @@ type DirWalker struct {
 	exeception WalkException
 }
 
-func (dw *DirWalker) ChildItemsHandler(depth int) {
+func (dw *DirWalker) SetWalkDepth(depth int) {
 	dm := DirMember{MaxDepth: depth, Sep: string(os.PathSeparator)}
 	dm.SetRoot(dw.Root)
 	dw.member = dm
 }
 
-func (dw *DirWalker) ExceptionHandler(exclude string) {
+func (dw *DirWalker) SetWalkException(exclude string) {
 	var wex WalkException
 	wex.SetNames(exclude, ",")
 	dw.exeception = wex
