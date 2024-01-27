@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/AWtnb/moko/launchentry"
-	"github.com/AWtnb/moko/selectedentry"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
@@ -24,6 +24,26 @@ func main() {
 	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
 	flag.Parse()
 	os.Exit(run(src, filer, all, exclude))
+}
+
+type Filer struct {
+	path string
+}
+
+func (fl *Filer) setPath(path string) {
+	if _, err := os.Stat(path); err == nil {
+		fl.path = path
+		return
+	}
+	fl.path = "explorer.exe"
+}
+
+func (fl Filer) open(path string) {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
+		exec.Command(fl.path, path).Start()
+		return
+	}
+	exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
 }
 
 func run(src string, filer string, all bool, exclude string) int {
@@ -46,17 +66,18 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 1
 	}
 
-	var se selectedentry.SelectedEntry
+	var se launchentry.Selected
 	se.SetEntry(selected)
 	if !se.IsValid() {
 		fmt.Printf("invalid path: '%s'\n", selected.Path)
 		return 1
 	}
 
-	se.SetFiler(filer)
+	var fl Filer
+	fl.setPath(filer)
 
-	if se.IsExecutable() {
-		se.OpenSelf()
+	if se.IsUri() || se.IsFile() {
+		fl.open(se.Path())
 		return 0
 	}
 
@@ -66,7 +87,7 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 1
 	}
 	if len(cs) < 1 {
-		se.OpenSelf()
+		fl.open(se.Path())
 		return 0
 	}
 	c, err := se.SelectItem(cs)
@@ -76,6 +97,6 @@ func run(src string, filer string, all bool, exclude string) int {
 		}
 		return 1
 	}
-	se.Open(c)
+	fl.open(c)
 	return 0
 }
