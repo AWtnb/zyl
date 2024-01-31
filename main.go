@@ -66,9 +66,9 @@ func run(src string, filer string, all bool, exclude string) int {
 		return 1
 	}
 
-	var se launchentry.Selected
-	se.SetEntry(selected)
-	if !se.IsValid() {
+	var t launchentry.Target
+	t.SetEntry(selected)
+	if !t.IsValid() {
 		fmt.Printf("invalid path: '%s'\n", selected.Path)
 		return 1
 	}
@@ -76,21 +76,21 @@ func run(src string, filer string, all bool, exclude string) int {
 	var fl Filer
 	fl.setPath(filer)
 
-	if se.IsUri() || se.IsFile() {
-		fl.open(se.Path())
+	if t.IsUri() || t.IsFile() {
+		fl.open(t.Path())
 		return 0
 	}
 
-	cs, err := se.GetChildItem(all, exclude)
+	cs, err := t.GetChildItem(all, exclude)
 	if err != nil {
 		fmt.Println(err)
 		return 1
 	}
 	if len(cs) < 1 {
-		fl.open(se.Path())
+		fl.open(t.Path())
 		return 0
 	}
-	c, err := se.SelectItem(cs)
+	c, err := t.SelectItem(cs)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			fmt.Println(err)
