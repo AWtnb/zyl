@@ -38,15 +38,15 @@ func (se Selected) IsFile() bool {
 }
 
 func (se Selected) GetChildItem(all bool, exclude string) (found []string, err error) {
-	dw := walk.DirWalker{All: all, Root: se.path}
-	dw.SetWalkDepth(se.depth)
-	dw.SetWalkException(exclude)
+	d := walk.Dir{All: all, Root: se.path}
+	d.SetWalkDepth(se.depth)
+	d.SetWalkException(exclude)
 	if strings.HasPrefix(se.path, "C:") {
-		return dw.GetChildItem()
+		return d.GetChildItem()
 	}
-	found, err = dw.GetChildItemWithEverything()
+	found, err = d.GetChildItemWithEverything()
 	if err != nil || len(found) < 1 {
-		found, err = dw.GetChildItem()
+		found, err = d.GetChildItem()
 	}
 	return
 }
