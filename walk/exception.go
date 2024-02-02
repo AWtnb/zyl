@@ -9,12 +9,16 @@ type WalkException struct {
 	names []string
 }
 
+func (wex *WalkException) SetName(s string) {
+	wex.names = append(wex.names, strings.TrimSpace(s))
+}
+
 func (wex *WalkException) SetNames(s string, sep string) {
 	if len(s) < 1 {
 		return
 	}
 	for _, elem := range strings.Split(s, sep) {
-		wex.names = append(wex.names, strings.TrimSpace(elem))
+		wex.SetName(elem)
 	}
 }
 

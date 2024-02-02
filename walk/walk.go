@@ -25,6 +25,7 @@ func (d *Dir) SetWalkDepth(depth int) {
 func (d *Dir) SetWalkException(exclude string) {
 	var wex WalkException
 	wex.SetNames(exclude, ",")
+	wex.SetName("AppData")
 	d.exeception = wex
 }
 
