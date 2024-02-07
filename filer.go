@@ -32,7 +32,7 @@ func (flr Filer) OpenSmart(path string) {
 		flr.Open(path)
 		return
 	}
-	fmt.Printf("open '%s' itself? (y/N): ", filepath.Base(path))
+	fmt.Printf("'%s' is a file.\nopen itself? (y/N): ", path)
 	sc := bufio.NewScanner(os.Stdin)
 	sc.Scan()
 	s := sc.Text()
