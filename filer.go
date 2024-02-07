@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/AWtnb/moko/sys"
 )
 
 type Filer struct {
@@ -35,11 +37,11 @@ func (flr Filer) OpenSmart(path string) {
 	sc.Scan()
 	s := sc.Text()
 	if strings.EqualFold(s, "y") {
-		fmt.Println("[ACCEPTED] opening in default app.")
-		exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
+		sys.Open(path)
+		fmt.Printf("[Y] opening in default app: '%s'\n", path)
 		return
 	}
-	fmt.Println("[DENIED] opening its directory on filer.")
 	d := filepath.Dir(path)
 	flr.Open(d)
+	fmt.Printf("[N] opening its directory: '%s'\n", d)
 }

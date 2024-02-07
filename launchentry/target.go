@@ -3,10 +3,10 @@ package launchentry
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/AWtnb/moko/sys"
 	"github.com/AWtnb/moko/walk"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
@@ -35,7 +35,7 @@ func (t Target) IsInvalid() bool {
 
 func (t Target) RunApp() error {
 	if t.IsFile() || t.IsUri() {
-		exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", t.path).Start()
+		sys.Open(t.path)
 		return nil
 	}
 	return fmt.Errorf("should-open-with-filer")
