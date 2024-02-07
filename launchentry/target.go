@@ -1,7 +1,9 @@
 package launchentry
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -23,9 +25,20 @@ func (t Target) Path() string {
 	return t.path
 }
 
-func (t Target) IsValid() bool {
+func (t Target) IsInvalid() bool {
+	if t.IsUri() {
+		return false
+	}
 	_, err := os.Stat(t.path)
-	return err == nil
+	return err != nil
+}
+
+func (t Target) RunApp() error {
+	if t.IsFile() || t.IsUri() {
+		exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", t.path).Start()
+		return nil
+	}
+	return fmt.Errorf("should-open-with-filer")
 }
 
 func (t Target) IsUri() bool {
