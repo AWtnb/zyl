@@ -38,10 +38,10 @@ func (flr Filer) OpenSmart(path string) {
 	s := sc.Text()
 	if strings.EqualFold(s, "y") {
 		sys.Open(path)
-		fmt.Printf("[Y] opening in default app: '%s'\n", path)
+		fmt.Println("[Y] default app is invoked to open file.")
 		return
 	}
 	d := filepath.Dir(path)
 	flr.Open(d)
-	fmt.Printf("[N] opening its directory: '%s'\n", d)
+	fmt.Println("[N] its directory is opened on filer.")
 }
