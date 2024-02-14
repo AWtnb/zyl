@@ -2,7 +2,6 @@ package walk
 
 import (
 	"io/fs"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -17,7 +16,7 @@ type Dir struct {
 }
 
 func (d *Dir) SetWalkDepth(depth int) {
-	dm := DirMember{MaxDepth: depth, Sep: string(os.PathSeparator)}
+	dm := DirMember{MaxDepth: depth}
 	dm.SetRoot(d.Root)
 	d.member = dm
 }

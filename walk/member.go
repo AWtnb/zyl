@@ -13,7 +13,6 @@ func GetDepth(path string) int {
 type DirMember struct {
 	rootDepth int
 	MaxDepth  int
-	Sep       string
 }
 
 func (dm *DirMember) SetRoot(path string) {
