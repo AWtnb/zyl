@@ -3,6 +3,7 @@
 package everything
 
 import (
+	"fmt"
 	"syscall"
 	"unsafe"
 )
@@ -120,13 +121,17 @@ func Walk(root string, skipFile bool, walkFn WalkFunc) error {
 
 // SetSearch void Everything_SetSearchW(LPCWSTR lpString);
 func SetSearch(str string) error {
-	if Everything_SetSearch != nil {
-		p, err := syscall.UTF16PtrFromString(str)
-		if err != nil {
-			return err
-		}
-		Everything_SetSearch.Call(uintptr(unsafe.Pointer(p)))
+	if Everything_SetSearch == nil {
+		return fmt.Errorf("failed to load dll")
 	}
+	if err := Everything_SetSearch.Find(); err != nil {
+		return err
+	}
+	p, err := syscall.UTF16PtrFromString(str)
+	if err != nil {
+		return err
+	}
+	Everything_SetSearch.Call(uintptr(unsafe.Pointer(p)))
 	return nil
 }
 
