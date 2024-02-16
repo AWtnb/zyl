@@ -28,7 +28,8 @@ func (d *Dir) SetWalkException(exclude string) {
 	d.exeception = wex
 }
 
-func (d Dir) GetChildItemWithEverything() (found []string, err error) {
+func (d Dir) GetChildItemWithEverything() (assisted bool, found []string, err error) {
+	assisted = true
 	if d.member.MaxDepth == 0 {
 		return
 	}
@@ -42,7 +43,8 @@ func (d Dir) GetChildItemWithEverything() (found []string, err error) {
 	return
 }
 
-func (d Dir) GetChildItem() (found []string, err error) {
+func (d Dir) GetChildItem() (assisted bool, found []string, err error) {
+	assisted = false
 	if d.member.MaxDepth == 0 {
 		return
 	}

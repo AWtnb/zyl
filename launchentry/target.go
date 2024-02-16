@@ -50,28 +50,28 @@ func (t Target) IsFile() bool {
 	return err == nil && !fi.IsDir()
 }
 
-func (t Target) GetChildItem(all bool, exclude string) (found []string, err error) {
+func (t Target) GetChildItem(all bool, exclude string) (withEverything bool, found []string, err error) {
 	d := walk.Dir{All: all, Root: t.path}
 	d.SetWalkDepth(t.depth)
 	d.SetWalkException(exclude)
 	if strings.HasPrefix(t.path, "C:") && (2 < walk.GetDepth(t.path)) {
 		return d.GetChildItem()
 	}
-	found, err = d.GetChildItemWithEverything()
+	withEverything, found, err = d.GetChildItemWithEverything()
 	if err != nil || len(found) < 1 {
-		found, err = d.GetChildItem()
+		withEverything, found, err = d.GetChildItem()
 	}
 	return
 }
 
-func (t Target) SelectItem(childPaths []string) (string, error) {
+func (t Target) SelectItem(childPaths []string, prompt string) (string, error) {
 	if len(childPaths) == 1 {
 		return childPaths[0], nil
 	}
 	idx, err := fuzzyfinder.Find(childPaths, func(i int) string {
 		rel, _ := filepath.Rel(t.path, childPaths[i])
 		return rel
-	})
+	}, fuzzyfinder.WithPromptString(prompt))
 	if err != nil {
 		return "", err
 	}

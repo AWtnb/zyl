@@ -58,7 +58,7 @@ func run(src string, flr Filer, all bool, exclude string) int {
 		return 0
 	}
 
-	cs, err := t.GetChildItem(all, exclude)
+	withEv, cs, err := t.GetChildItem(all, exclude)
 	if err != nil {
 		fmt.Println(err)
 		return 1
@@ -67,7 +67,13 @@ func run(src string, flr Filer, all bool, exclude string) int {
 		flr.Open(t.Path())
 		return 0
 	}
-	c, err := t.SelectItem(cs)
+	var prompt string
+	if withEv {
+		prompt = "#"
+	} else {
+		prompt = ">"
+	}
+	c, err := t.SelectItem(cs, prompt)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			fmt.Println(err)
