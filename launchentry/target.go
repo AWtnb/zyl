@@ -50,16 +50,20 @@ func (t Target) IsFile() bool {
 	return err == nil && !fi.IsDir()
 }
 
-func (t Target) GetChildItem(all bool, exclude string) (withEverything bool, found []string, err error) {
+func (t Target) GetChildItem(all bool, exclude string) (assisted bool, found []string, err error) {
 	d := walk.Dir{All: all, Root: t.path}
 	d.SetWalkDepth(t.depth)
 	d.SetWalkException(exclude)
 	if strings.HasPrefix(t.path, "C:") && (2 < walk.GetDepth(t.path)) {
-		return d.GetChildItem()
+		assisted = false
+		found, err = d.GetChildItem()
+		return
 	}
-	withEverything, found, err = d.GetChildItemWithEverything()
+	assisted = true
+	found, err = d.GetChildItemWithEverything()
 	if err != nil || len(found) < 1 {
-		withEverything, found, err = d.GetChildItem()
+		assisted = false
+		found, err = d.GetChildItem()
 	}
 	return
 }
