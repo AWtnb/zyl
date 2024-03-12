@@ -27,9 +27,13 @@ func (flr Filer) Open(path string) {
 	exec.Command(flr.path, path).Start()
 }
 
-func (flr Filer) OpenSmart(path string) {
+func (flr Filer) OpenSmart(path string, curDir string) {
 	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
 		flr.Open(path)
+		return
+	}
+	if filepath.Dir(path) == curDir {
+		sys.Open(path)
 		return
 	}
 	fmt.Printf("'%s' is a file.\nopen itself? (y/N): ", path)

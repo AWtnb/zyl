@@ -80,6 +80,6 @@ func run(src string, flr Filer, all bool, exclude string) int {
 		}
 		return 1
 	}
-	flr.OpenSmart(c)
+	flr.OpenSmart(c, "")
 	return 0
 }
