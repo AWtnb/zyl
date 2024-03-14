@@ -54,13 +54,8 @@ func (t Target) GetChildItem(all bool, exclude string) (assisted bool, found []s
 	d := walk.Dir{All: all, Root: t.path}
 	d.SetWalkDepth(t.depth)
 	d.SetWalkException(exclude)
-	if strings.HasPrefix(t.path, "C:") && (2 < walk.GetDepth(t.path)) {
-		assisted = false
-		found, err = d.GetChildItem()
-		return
-	}
-	assisted = true
 	found, err = d.GetChildItemWithEverything()
+	assisted = true
 	if err != nil || len(found) < 1 {
 		assisted = false
 		found, err = d.GetChildItem()
