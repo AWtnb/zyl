@@ -44,17 +44,17 @@ func (wex WalkException) isSkippablePath(path string) bool {
 	return false
 }
 
-func (wex WalkException) Filter(paths []string) []string {
+func (wex WalkException) Filter(paths []string) (filtered []string) {
 	if len(wex.names) < 1 {
-		return paths
+		filtered = paths
+		return
 	}
-	sl := []string{}
 	for i := 0; i < len(paths); i++ {
 		p := paths[i]
 		if wex.isSkippablePath(p) {
 			continue
 		}
-		sl = append(sl, p)
+		filtered = append(filtered, p)
 	}
-	return sl
+	return
 }
