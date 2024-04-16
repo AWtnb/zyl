@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/AWtnb/moko/everything"
+	"github.com/AWtnb/go-everything"
 )
 
 type Dir struct {

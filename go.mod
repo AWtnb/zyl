@@ -1,8 +1,11 @@
 module github.com/AWtnb/moko
 
-go 1.18
+go 1.21.1
+
+toolchain go1.21.4
 
 require (
+	github.com/AWtnb/go-everything v0.0.0-20240416011811-be6dbf064436
 	github.com/ktr0731/go-fuzzyfinder v0.7.0
 	gopkg.in/yaml.v2 v2.4.0
 )
