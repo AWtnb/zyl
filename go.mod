@@ -1,16 +1,15 @@
 module github.com/AWtnb/moko
 
-go 1.21.1
-
-toolchain go1.21.4
+go 1.21.4
 
 require (
-	github.com/AWtnb/go-everything v1.0.0
+	github.com/AWtnb/go-walk v1.0.2
 	github.com/ktr0731/go-fuzzyfinder v0.8.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	github.com/AWtnb/go-everything v1.0.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/gdamore/tcell/v2 v2.7.4 // indirect
 	github.com/ktr0731/go-ansisgr v0.1.0 // indirect

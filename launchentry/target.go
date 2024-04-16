@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/AWtnb/go-walk"
 	"github.com/AWtnb/moko/sys"
-	"github.com/AWtnb/moko/walk"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
