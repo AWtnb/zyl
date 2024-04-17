@@ -1,14 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/AWtnb/moko/sys"
+	"github.com/ktr0731/go-fuzzyfinder"
 )
 
 type Filer struct {
@@ -23,29 +22,35 @@ func (flr *Filer) SetPath(path string) {
 	flr.path = "explorer.exe"
 }
 
-func (flr Filer) Open(path string) {
-	exec.Command(flr.path, path).Start()
+func (flr Filer) Open(path string) error {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
+		exec.Command(flr.path, path).Start()
+		return nil
+	}
+	return fmt.Errorf("failed to open '%s' on filer", path)
 }
 
 func (flr Filer) OpenSmart(path string, curDir string) {
-	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
-		flr.Open(path)
+	if err := flr.Open(path); err == nil {
 		return
 	}
 	if filepath.Dir(path) == curDir {
 		sys.Open(path)
 		return
 	}
-	fmt.Printf("'%s' is a file.\nopen itself? (y/N): ", path)
-	sc := bufio.NewScanner(os.Stdin)
-	sc.Scan()
-	s := sc.Text()
-	if strings.EqualFold(s, "y") {
-		sys.Open(path)
-		fmt.Println("[Y] default app is invoked to open file.")
+	d := filepath.Dir(path)
+	ss := []string{path, d}
+	idx, err := fuzzyfinder.Find(ss, func(i int) string {
+		p := ss[i]
+		rel, _ := filepath.Rel(filepath.Dir(d), p)
+		return rel
+	}, fuzzyfinder.WithCursorPosition(fuzzyfinder.CursorPositionTop))
+	if err != nil {
 		return
 	}
-	d := filepath.Dir(path)
-	flr.Open(d)
-	fmt.Println("[N] its directory is opened on filer.")
+
+	p := ss[idx]
+	if err := flr.Open(p); err != nil {
+		sys.Open(p)
+	}
 }
