@@ -51,9 +51,8 @@ func (t Target) IsFile() bool {
 }
 
 func (t Target) GetChildItem(all bool, exclude string) (assisted bool, found []string, err error) {
-	d := walk.Dir{All: all, Root: t.path}
-	d.SetWalkDepth(t.depth)
-	d.SetWalkException(exclude)
+	var d walk.Dir
+	d.Init(t.path, all, t.depth, exclude)
 	found, err = d.GetChildItemWithEverything()
 	assisted = true
 	if err != nil || len(found) < 1 {
