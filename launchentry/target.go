@@ -68,7 +68,7 @@ func (t Target) SelectItem(childPaths []string, prompt string) (string, error) {
 	}
 	idx, err := fuzzyfinder.Find(childPaths, func(i int) string {
 		rel, _ := filepath.Rel(t.path, childPaths[i])
-		return rel
+		return filepath.ToSlash(rel)
 	}, fuzzyfinder.WithPromptString(prompt))
 	if err != nil {
 		return "", err

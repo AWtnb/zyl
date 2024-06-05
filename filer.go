@@ -43,7 +43,7 @@ func (flr Filer) OpenSmart(path string, curDir string) {
 	idx, err := fuzzyfinder.Find(ss, func(i int) string {
 		p := ss[i]
 		rel, _ := filepath.Rel(filepath.Dir(d), p)
-		return rel
+		return filepath.ToSlash(rel)
 	}, fuzzyfinder.WithCursorPosition(fuzzyfinder.CursorPositionTop))
 	if err != nil {
 		return
