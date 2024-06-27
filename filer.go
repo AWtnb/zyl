@@ -8,6 +8,20 @@ import (
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
+func dirOr(path string) (string, error) {
+	d := filepath.Dir(path)
+	ss := []string{path, d}
+	idx, err := fuzzyfinder.Find(ss, func(i int) string {
+		p := ss[i]
+		rel, _ := filepath.Rel(filepath.Dir(d), p)
+		return filepath.ToSlash(rel)
+	}, fuzzyfinder.WithCursorPosition(fuzzyfinder.CursorPositionTop))
+	if err != nil {
+		return "", err
+	}
+	return ss[idx], nil
+}
+
 func defaultOpen(path string) error {
 	return exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
 }
@@ -35,22 +49,11 @@ func (flr Filer) OpenSmart(path string, curDir string) error {
 	if filepath.Dir(path) == curDir {
 		return defaultOpen(path)
 	}
-	d := filepath.Dir(path)
-	ss := []string{path, d}
-	idx, err := fuzzyfinder.Find(ss, func(i int) string {
-		p := ss[i]
-		rel, _ := filepath.Rel(filepath.Dir(d), p)
-		return filepath.ToSlash(rel)
-	}, fuzzyfinder.WithCursorPosition(fuzzyfinder.CursorPositionTop))
+	p, err := dirOr(path)
 	if err != nil {
 		return err
 	}
-	p := ss[idx]
-	fi, err := os.Stat(p)
-	if err != nil {
-		return err
-	}
-	if fi.IsDir() {
+	if fi, err := os.Stat(p); err == nil && fi.IsDir() {
 		return flr.open(p)
 	}
 	return defaultOpen(p)
