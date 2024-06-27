@@ -14,6 +14,8 @@ search target configurable with `.yaml`
         filer path (default "explorer.exe")
   -src string
         source yaml file path
+  -stdout
+        switch to stdout
 ```
 
 ## `launch.yaml`

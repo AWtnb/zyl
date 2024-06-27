@@ -16,11 +16,13 @@ func main() {
 		filer   string
 		all     bool
 		exclude string
+		stdout  bool
 	)
 	flag.StringVar(&src, "src", "", "source yaml file path")
 	flag.StringVar(&filer, "filer", "explorer.exe", "filer path")
 	flag.BoolVar(&all, "all", false, "switch to search including file")
 	flag.StringVar(&exclude, "exclude", "", "search exception (comma-separated)")
+	flag.BoolVar(&stdout, "stdout", false, "switch to stdout")
 	flag.Parse()
 
 	var f Filer
@@ -30,7 +32,7 @@ func main() {
 		p, _ := os.Executable()
 		src = filepath.Join(filepath.Dir(p), "launch.yaml")
 	}
-	os.Exit(run(src, f, all, exclude))
+	os.Exit(run(src, f, all, exclude, stdout))
 }
 
 func find(src string, all bool, exclude string) (string, error) {
@@ -74,13 +76,17 @@ func find(src string, all bool, exclude string) (string, error) {
 	return c, nil
 }
 
-func run(src string, flr Filer, all bool, exclude string) int {
+func run(src string, flr Filer, all bool, exclude string, stdout bool) int {
 	p, err := find(src, all, exclude)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
 			fmt.Println(err.Error())
 		}
 		return 1
+	}
+	if stdout {
+		fmt.Println(p)
+		return 0
 	}
 
 	if err := flr.OpenSmart(p, ""); err != nil {
