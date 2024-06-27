@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/AWtnb/moko/launchentry"
+	"github.com/AWtnb/zyl/launchentry"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 

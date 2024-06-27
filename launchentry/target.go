@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/AWtnb/go-walk"
-	"github.com/AWtnb/moko/sys"
+	"github.com/AWtnb/zyl/sys"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 

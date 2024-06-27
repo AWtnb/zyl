@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/AWtnb/moko/sys"
+	"github.com/AWtnb/zyl/sys"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 

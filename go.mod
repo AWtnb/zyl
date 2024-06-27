@@ -1,4 +1,4 @@
-module github.com/AWtnb/moko
+module github.com/AWtnb/zyl
 
 go 1.21.4
 

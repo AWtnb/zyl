@@ -1,14 +1,11 @@
-# moko
+# fuzZYLauncher for windows
 
-曖昧模糊 あいまいもこ _aimai-**moko**_ means fuzzyness in Japanese.
 
-- fuzzy file/folder launcher for windows.
-- search target configurable with `.yaml`
+search target configurable with `.yaml`
 
 
 ```
-> moko -h
-Usage of moko.exe:
+> zyl -h
   -all
         switch in order to search including file
   -exclude string
@@ -36,7 +33,7 @@ Usage of moko.exe:
     - `0` (default) : Open the selected folder in the filer without searching for subfolders.
     - `-1` : Search all folders except hidden folders.
 - File search on network directory is slow. In that case, [Everything](https://www.voidtools.com) can be used.
-    - Requirement: Everything is running on PC and `Everything64.dll` exists on the same directory with `moko.exe` .
+    - Requirement: Everything is running on PC and `Everything64.dll` exists on the same directory with `zyl.exe` .
     - `Everything64.dll` is released on [official site](https://www.voidtools.com/support/everything/sdk/) .
 
 Great thanks for:
