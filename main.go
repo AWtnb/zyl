@@ -32,54 +32,59 @@ func main() {
 	os.Exit(run(src, f, all, exclude))
 }
 
-func run(src string, flr Filer, all bool, exclude string) int {
+func find(src string, all bool, exclude string) (string, error) {
 	var les launchentry.LaunchEntries
 	if err := les.Load(src); err != nil {
-		fmt.Println(err)
-		return 1
+		return "", err
 	}
 
-	selected, err := les.Select()
+	sel, err := les.Select()
 	if err != nil {
-		if err != fuzzyfinder.ErrAbort {
-			fmt.Println(err)
-		}
-		return 1
+		return "", err
 	}
 
 	var t launchentry.Target
-	t.SetEntry(selected)
+	t.SetEntry(sel)
 	if t.IsInvalid() {
-		fmt.Printf("invalid path: '%s'\n", selected.Path)
-		return 1
+		return sel.Path, fmt.Errorf("invalid path: %s", sel.Path)
 	}
 
-	if err := t.RunApp(); err == nil {
-		return 0
+	if t.IsFile() || t.IsUri() {
+		return t.Path(), nil
 	}
 
-	withEv, cs, err := t.GetChildItem(all, exclude)
+	evr, fd, err := t.GetChildItem(all, exclude)
 	if err != nil {
-		fmt.Println(err)
-		return 1
+		return "", err
 	}
-	if len(cs) < 1 {
-		flr.Open(t.Path())
-		return 0
+	if len(fd) < 1 {
+		return t.Path(), nil
 	}
 	var prompt string
-	if withEv {
+	if evr {
 		prompt = "#"
 	} else {
 		prompt = ">"
 	}
-	c, err := t.SelectItem(cs, prompt)
+	c, err := t.SelectItem(fd, prompt)
+	if err != nil {
+		return "", err
+	}
+	return c, nil
+}
+
+func run(src string, flr Filer, all bool, exclude string) int {
+	p, err := find(src, all, exclude)
 	if err != nil {
 		if err != fuzzyfinder.ErrAbort {
-			fmt.Println(err)
+			fmt.Println(err.Error())
 		}
 		return 1
 	}
-	flr.OpenSmart(c, "")
+
+	if err := flr.OpenSmart(p, ""); err != nil {
+		fmt.Println(err.Error())
+		return 1
+	}
 	return 0
 }

@@ -1,13 +1,11 @@
 package launchentry
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/AWtnb/go-walk"
-	"github.com/AWtnb/zyl/sys"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
 
@@ -31,14 +29,6 @@ func (t Target) IsInvalid() bool {
 	}
 	_, err := os.Stat(t.path)
 	return err != nil
-}
-
-func (t Target) RunApp() error {
-	if t.IsFile() || t.IsUri() {
-		sys.Open(t.path)
-		return nil
-	}
-	return fmt.Errorf("should-open-with-filer")
 }
 
 func (t Target) IsUri() bool {

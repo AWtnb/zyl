@@ -1,42 +1,39 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/AWtnb/zyl/sys"
 	"github.com/ktr0731/go-fuzzyfinder"
 )
+
+func defaultOpen(path string) error {
+	return exec.Command("rundll32.exe", "url.dll,FileProtocolHandler", path).Start()
+}
 
 type Filer struct {
 	path string
 }
 
 func (flr *Filer) SetPath(path string) {
-	if _, err := os.Stat(path); err == nil {
+	if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
 		flr.path = path
 		return
 	}
 	flr.path = "explorer.exe"
 }
 
-func (flr Filer) Open(path string) error {
-	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
-		exec.Command(flr.path, path).Start()
-		return nil
-	}
-	return fmt.Errorf("failed to open '%s' on filer", path)
+func (flr Filer) open(path string) error {
+	return exec.Command(flr.path, path).Start()
 }
 
-func (flr Filer) OpenSmart(path string, curDir string) {
-	if err := flr.Open(path); err == nil {
-		return
+func (flr Filer) OpenSmart(path string, curDir string) error {
+	if fi, err := os.Stat(path); err == nil && fi.IsDir() {
+		return flr.open(path)
 	}
 	if filepath.Dir(path) == curDir {
-		sys.Open(path)
-		return
+		return defaultOpen(path)
 	}
 	d := filepath.Dir(path)
 	ss := []string{path, d}
@@ -46,11 +43,15 @@ func (flr Filer) OpenSmart(path string, curDir string) {
 		return filepath.ToSlash(rel)
 	}, fuzzyfinder.WithCursorPosition(fuzzyfinder.CursorPositionTop))
 	if err != nil {
-		return
+		return err
 	}
-
 	p := ss[idx]
-	if err := flr.Open(p); err != nil {
-		sys.Open(p)
+	fi, err := os.Stat(p)
+	if err != nil {
+		return err
 	}
+	if fi.IsDir() {
+		return flr.open(path)
+	}
+	return defaultOpen(p)
 }
