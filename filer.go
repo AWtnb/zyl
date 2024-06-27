@@ -16,7 +16,7 @@ type Filer struct {
 	path string
 }
 
-func (flr *Filer) SetPath(path string) {
+func (flr *Filer) Init(path string) {
 	if fi, err := os.Stat(path); err == nil && !fi.IsDir() {
 		flr.path = path
 		return

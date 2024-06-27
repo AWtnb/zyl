@@ -24,7 +24,8 @@ func main() {
 	flag.Parse()
 
 	var f Filer
-	f.SetPath(filer)
+	f.Init(filer)
+
 	if len(src) < 1 {
 		p, _ := os.Executable()
 		src = filepath.Join(filepath.Dir(p), "launch.yaml")
