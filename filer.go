@@ -51,7 +51,7 @@ func (flr Filer) OpenSmart(path string, curDir string) error {
 		return err
 	}
 	if fi.IsDir() {
-		return flr.open(path)
+		return flr.open(p)
 	}
 	return defaultOpen(p)
 }
