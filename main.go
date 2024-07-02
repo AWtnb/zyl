@@ -85,7 +85,7 @@ func run(src string, flr Filer, all bool, exclude string, stdout bool) int {
 		return 1
 	}
 	if stdout {
-		fmt.Println(p)
+		fmt.Print(p)
 		return 0
 	}
 
