@@ -1,4 +1,4 @@
-# fuzZYLauncher for windows
+# fuzZY Launcher
 
 
 search target configurable with `.yaml`
