@@ -1,8 +1,6 @@
 package launchentry
 
 import (
-	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,6 +8,14 @@ import (
 	"github.com/ktr0731/go-fuzzyfinder"
 	"gopkg.in/yaml.v2"
 )
+
+func leaf(s string) string {
+	ss := strings.Split(filepath.ToSlash(s), "/")
+	if 1 < len(ss) {
+		return ss[len(ss)-1]
+	}
+	return s
+}
 
 type LaunchEntry struct {
 	Path  string
@@ -22,18 +28,9 @@ func (le *LaunchEntry) resolvePath() {
 }
 
 func (le *LaunchEntry) setAlias() {
-	if 0 < len(le.Alias) {
-		return
+	if len(le.Alias) < 1 {
+		le.Alias = leaf(le.Path)
 	}
-	if strings.HasPrefix(le.Path, "http") {
-		if u, err := url.Parse(le.Path); err == nil {
-			le.Alias = fmt.Sprintf("link[%s/%s]", u.Host, u.RawQuery)
-			return
-		}
-		le.Alias = le.Path
-		return
-	}
-	le.Alias = filepath.Base(le.Path)
 }
 
 type LaunchEntries struct {

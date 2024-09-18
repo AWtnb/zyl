@@ -3,7 +3,6 @@ package launchentry
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/AWtnb/go-walk"
 	"github.com/ktr0731/go-fuzzyfinder"
@@ -23,16 +22,9 @@ func (t Target) Path() string {
 	return t.path
 }
 
-func (t Target) IsInvalid() bool {
-	if t.IsUri() {
-		return false
-	}
+func (t Target) IsValid() bool {
 	_, err := os.Stat(t.path)
-	return err != nil
-}
-
-func (t Target) IsUri() bool {
-	return strings.HasPrefix(t.path, "http")
+	return err == nil
 }
 
 func (t Target) IsFile() bool {

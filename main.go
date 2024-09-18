@@ -45,11 +45,11 @@ func find(src string, all bool, exclude string) (string, error) {
 
 	var t launchentry.Target
 	t.SetEntry(sel)
-	if t.IsInvalid() {
+	if !t.IsValid() {
 		return sel.Path, fmt.Errorf("invalid path: %s", sel.Path)
 	}
 
-	if t.IsFile() || t.IsUri() {
+	if t.IsFile() {
 		return t.Path(), nil
 	}
 
