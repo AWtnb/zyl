@@ -3,6 +3,7 @@ package launchentry
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/ktr0731/go-fuzzyfinder"
@@ -66,6 +67,9 @@ func (les *LaunchEntries) setEditItem(editPath string) {
 func (les LaunchEntries) Select() (le LaunchEntry, err error) {
 	les.format()
 	candidates := les.entries
+	sort.SliceStable(candidates, func(i, j int) bool {
+		return candidates[i].Alias < candidates[j].Alias
+	})
 	idx, err := fuzzyfinder.Find(candidates, func(i int) string {
 		return candidates[i].Alias
 	})
