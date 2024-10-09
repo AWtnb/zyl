@@ -35,11 +35,16 @@ func (le *LaunchEntry) setAlias() {
 }
 
 type LaunchEntries struct {
+	src     string
 	entries []LaunchEntry
 }
 
-func (les *LaunchEntries) Load(path string) error {
-	buf, err := os.ReadFile(path)
+func (les *LaunchEntries) Init(src string) {
+	les.src = src
+}
+
+func (les *LaunchEntries) Load() error {
+	buf, err := os.ReadFile(les.src)
 	if err != nil {
 		return err
 	}
@@ -48,8 +53,13 @@ func (les *LaunchEntries) Load(path string) error {
 		return err
 	}
 	les.entries = entries
-	les.setEditItem(path)
 	return nil
+}
+
+func (les *LaunchEntries) sort() {
+	sort.Slice(les.entries, func(i, j int) bool {
+		return les.entries[i].Alias < les.entries[j].Alias
+	})
 }
 
 func (les *LaunchEntries) format() {
@@ -57,6 +67,8 @@ func (les *LaunchEntries) format() {
 		les.entries[i].resolvePath()
 		les.entries[i].setAlias()
 	}
+	les.sort()
+	les.setEditItem(les.src)
 }
 
 func (les *LaunchEntries) setEditItem(editPath string) {
@@ -67,9 +79,6 @@ func (les *LaunchEntries) setEditItem(editPath string) {
 func (les LaunchEntries) Select() (le LaunchEntry, err error) {
 	les.format()
 	candidates := les.entries
-	sort.SliceStable(candidates, func(i, j int) bool {
-		return candidates[i].Alias < candidates[j].Alias
-	})
 	idx, err := fuzzyfinder.Find(candidates, func(i int) string {
 		return candidates[i].Alias
 	})

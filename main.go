@@ -34,7 +34,8 @@ func main() {
 
 func find(src string, all bool, exclude string) (string, error) {
 	var les launchentry.LaunchEntries
-	if err := les.Load(src); err != nil {
+	les.Init(src)
+	if err := les.Load(); err != nil {
 		return "", err
 	}
 
