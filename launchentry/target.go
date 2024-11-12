@@ -37,7 +37,7 @@ func (t Target) GetChildItem(all bool, exclude string) (assisted bool, found []s
 	d.Init(t.path, all, t.depth, exclude)
 	found, err = d.GetChildItemWithEverything()
 	assisted = true
-	if err != nil || len(found) < 1 {
+	if err != nil || len(found) < 2 {
 		assisted = false
 		found, err = d.GetChildItem()
 	}
